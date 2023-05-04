@@ -37,6 +37,7 @@ import numpy as np
 from functools import lru_cache
 
 from webhook import fire_webhook
+import base64
 
 class Predictor(BasePredictor):
     def setup(self):
@@ -361,8 +362,10 @@ class Predictor(BasePredictor):
             output.images[0].save(output_path)
             yield Path(output_path)
             
+            with open(output_path, "rb") as image_file:
+                encoded_string = base64.b64encode(image_file.read()).decode("utf-8")
             if webhook_link:
-                fire_webhook(webhook_link, output_path, idx)
+                fire_webhook(webhook_link, encoded_string, idx)
 
             result_count += 1
 
