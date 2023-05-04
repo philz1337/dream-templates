@@ -36,6 +36,7 @@ from PIL import Image
 import numpy as np
 from functools import lru_cache
 
+from webhook import fire_webhook
 
 class Predictor(BasePredictor):
     def setup(self):
@@ -227,6 +228,9 @@ class Predictor(BasePredictor):
         info: bool = Input(
             description="log extra information about the run", default=False
         ),
+        webhook_link: str = Input(
+            description="Webhook link to post results to", default=None
+        ),
     ) -> Iterator[Path]:
         """Run a single prediction on the model"""
 
@@ -356,6 +360,10 @@ class Predictor(BasePredictor):
             output_path = f"/tmp/seed-{this_seed}.png"
             output.images[0].save(output_path)
             yield Path(output_path)
+            
+            if webhook_link:
+                fire_webhook(webhook_link, output_path, idx)
+
             result_count += 1
 
         if result_count == 0:
