@@ -12,7 +12,7 @@ def fire_webhook(
     }
 
     # Send the POST request to the webhook
-    response = requests.post(webhook_url, json=payload, timeout=0.5)
+    response = requests.post(webhook_url, json=payload, timeout=5)
 
     # Check the status code of the response
     if response.status_code == 200:
