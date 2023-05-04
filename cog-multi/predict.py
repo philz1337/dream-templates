@@ -78,17 +78,11 @@ class Predictor(BasePredictor):
 
     def download_weights(self, weights: str):
         print(f"Downloading weights for {weights}...")
-        gs_url = f"gs://replicant-misc/{weights}.tar"
-        tar = f"/src/weights/{weights}.tar"
-        subprocess.check_call(
-             ["/gc/google-cloud-sdk/bin/gcloud", "storage", "cp", gs_url, tar]
-        )
+
+        url = f"https://storage.googleapis.com/replicant-misc/{weights}.tar"
         dest = self.weights_path(weights)
-        if not os.path.exists(dest):
-            os.makedirs(dest)
-        os.system(f"tar -xvf {tar} -C {dest}")
-        os.unlink(tar)
-    
+        output = subprocess.check_output(['/src/pgettar', url,  dest, str(16)])
+
     def load_image(self, image_path: Path):
         if image_path is None:
             return None
