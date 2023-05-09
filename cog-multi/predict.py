@@ -82,7 +82,7 @@ class Predictor(BasePredictor):
         dest = self.weights_path(weights)
         output = subprocess.check_output(['/src/pgettar', url,  dest, str(16)])
 
-    def upscale(img, upscale_rate):
+    def upscale(self, img, upscale_rate):
         w, h = img.size
         new_w, new_h = int(w * upscale_rate), int(h * upscale_rate)
         return img.resize((new_w, new_h), Image.BICUBIC)
