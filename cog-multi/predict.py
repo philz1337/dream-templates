@@ -82,7 +82,12 @@ class Predictor(BasePredictor):
         dest = self.weights_path(weights)
         output = subprocess.check_output(['/src/pgettar', url,  dest, str(16)])
 
-    def load_image(self, image_path: Path):
+    def upscale(img, upscale_rate):
+        w, h = img.size
+        new_w, new_h = int(w * upscale_rate), int(h * upscale_rate)
+        return img.resize((new_w, new_h), Image.BICUBIC)
+
+    def load_image(self, image_path: Path, upscale_rate: float = 1.0):
         if image_path is None:
             return None
         # not sure why I have to copy the image, but it fails otherwise
@@ -90,7 +95,16 @@ class Predictor(BasePredictor):
         if os.path.exists("img.png"):
             os.unlink("img.png")
         shutil.copy(image_path, "img.png")
-        return load_image("img.png")
+        
+        if upscale_rate > 1.0:
+            # Call the upscale function on the loaded image
+            img = Image.open("img.png")
+            img = self.upscale(img, upscale_rate)
+        else:
+            # Load the image directly without upscaling
+            img = Image.open("img.png")
+        
+        return img
 
     def process_control(self, control_image):
         if control_image is None:
@@ -227,6 +241,16 @@ class Predictor(BasePredictor):
         info: bool = Input(
             description="log extra information about the run", default=False
         ),
+        upscaler: str = Input(
+            default="Plain",
+            choices=[
+                "Plain",
+            ],
+            description="Choose a upscaler.",
+        ),
+        upscale_rate: float = Input(
+            description="Rate for Upscaling. 1.0 corresponds to original image size", ge=1, le=20, default=1
+        ),
     ) -> Iterator[Path]:
         """Run a single prediction on the model"""
 
@@ -242,7 +266,7 @@ class Predictor(BasePredictor):
 
         start = time.time()
         if image:
-            image = self.load_image(image)
+            image = self.load_image(image,upscale_rate)
         if control_image:
             control_image = self.load_image(control_image)
             control_image = self.process_control(control_image)
