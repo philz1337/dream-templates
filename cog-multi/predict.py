@@ -53,7 +53,7 @@ class Predictor(BasePredictor):
             local_files_only=True,
         ).to("cuda")
 
-    @lru_cache(maxsize=10)
+    @lru_cache(maxsize=2)
     def get_weights(self, weights: str):
         destination_path = self.weights_path(weights)
         if not os.path.exists(destination_path):
