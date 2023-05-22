@@ -35,6 +35,7 @@ from controlnet_aux import MidasDetector
 from PIL import Image
 import numpy as np
 from functools import lru_cache
+from weights import WeightsDownloadCache
 
 
 class Predictor(BasePredictor):
@@ -47,46 +48,39 @@ class Predictor(BasePredictor):
 
         print("Loading controlnet...")
         self.controlnet = ControlNetModel.from_pretrained(
-            settings.CONTROLNET_MODEL,
+            os.path.join(settings.MODEL_CACHE, "depth"),
             torch_dtype=torch.float16,
-            cache_dir=settings.MODEL_CACHE,
             local_files_only=True,
         ).to("cuda")
+
+        self.weights_download_cache = WeightsDownloadCache()
+
+    def get_weights(self, weights: str):
+        if weights.startswith("https://"):
+            url = weights
+        else:
+            url = f"https://storage.googleapis.com/replicant-misc/{weights}.tar"
+
+        if 'replicate.delivery' in url:
+            url = url.replace('replicate.delivery/pbxt', 'storage.googleapis.com/replicate-files')
+
+        path = self.weights_download_cache.ensure(url)
+        return self.gpu_weights(path)
 
     @lru_cache(maxsize=10)
-    def get_weights(self, weights: str):
-        destination_path = self.weights_path(weights)
-        if not os.path.exists(destination_path):
-            self.download_weights(weights)
-
-        return self.load_weights(destination_path)
-
-    def load_weights(self, weights):
-        print(f"Loading txt2img... {weights}")
+    def gpu_weights(self, weights_path: str):
+        print(f"Loading txt2img... {weights_path}")
         return StableDiffusionPipeline.from_pretrained(
-            self.weights_path(weights),
+            weights_path,
             torch_dtype=torch.float16,
-            cache_dir=settings.MODEL_CACHE,
             local_files_only=True,
         ).to("cuda")
-
-    def weights_path(self, weights: str):
-        if not os.path.exists("/src/weights"):
-            os.makedirs("/src/weights")
-        return os.path.join("/src/weights", weights)
-
-    def download_weights(self, weights: str):
-        print(f"Downloading weights for {weights}...")
-
-        url = f"https://storage.googleapis.com/replicant-misc/{weights}.tar"
-        dest = self.weights_path(weights)
-        output = subprocess.check_output(['/src/pgettar', url,  dest, str(16)])
 
     def upscale(self, img, upscale_rate):
         w, h = img.size
         new_w, new_h = int(w * upscale_rate), int(h * upscale_rate)
         return img.resize((new_w, new_h), Image.BICUBIC)
-
+    
     def load_image(self, image_path: Path, upscale_rate: float = 1.0):
         if image_path is None:
             return None
@@ -95,7 +89,7 @@ class Predictor(BasePredictor):
         if os.path.exists("img.png"):
             os.unlink("img.png")
         shutil.copy(image_path, "img.png")
-        
+                
         if upscale_rate > 1.0:
             # Call the upscale function on the loaded image
             img = Image.open("img.png")
@@ -255,10 +249,14 @@ class Predictor(BasePredictor):
         """Run a single prediction on the model"""
 
         if info:
+            print('GPU GPU GPU')
+            print(self.gpu_weights.cache_info())
             os.system("nvidia-smi")
+
+            print('DISK DISK DISK')
             os.system("df -h")
             os.system("free -h")
-            print(self.get_weights.cache_info())
+            print(self.weights_download_cache.cache_info())
 
         start = time.time()
         pipe = self.get_weights(weights)
@@ -266,7 +264,7 @@ class Predictor(BasePredictor):
 
         start = time.time()
         if image:
-            image = self.load_image(image,upscale_rate)
+             image = self.load_image(image,upscale_rate)
         if control_image:
             control_image = self.load_image(control_image)
             control_image = self.process_control(control_image)
