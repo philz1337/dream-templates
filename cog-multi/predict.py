@@ -302,6 +302,8 @@ class Predictor(BasePredictor):
                 "image": image,
                 "mask_image": mask,
                 "strength": prompt_strength,
+                "prompt_embeds": None,
+                "negative_prompt_embeds": None,
             }
         elif image:
             print("Using img2img pipeline")
