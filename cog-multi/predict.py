@@ -302,8 +302,6 @@ class Predictor(BasePredictor):
                 "image": image,
                 "mask_image": mask,
                 "strength": prompt_strength,
-                "prompt_embeds": None,
-                "negative_prompt_embeds": None,
             }
         elif image:
             print("Using img2img pipeline")
@@ -344,6 +342,8 @@ class Predictor(BasePredictor):
         if prompt:
             print("parsed prompt:", compel.parse_prompt_string(prompt))
             prompt_embeds = compel(prompt)
+        elif image and mask:
+            prompt_embeds = None
         else:
             prompt_embeds = None
 
@@ -358,8 +358,6 @@ class Predictor(BasePredictor):
 
         if disable_safety_check:
             pipe.safety_checker = None
-        else:
-            pipe.safety_checker = self.safety_checker
 
         result_count = 0
         for idx in range(num_outputs):
