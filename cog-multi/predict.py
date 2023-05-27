@@ -356,10 +356,10 @@ class Predictor(BasePredictor):
         else:
             negative_prompt_embeds = None
 
-        # if disable_safety_check:
-        #     pipe.safety_checker = None
-        # else:
-        #     pipe.safety_checker = self.safety_checker
+        if disable_safety_check:
+            pipe.safety_checker = None
+        else:
+            pipe.safety_checker = self.safety_checker
 
         result_count = 0
         for idx in range(num_outputs):
