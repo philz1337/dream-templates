@@ -342,8 +342,6 @@ class Predictor(BasePredictor):
         if prompt:
             print("parsed prompt:", compel.parse_prompt_string(prompt))
             prompt_embeds = compel(prompt)
-        elif image and mask:
-            prompt_embeds = None
         else:
             prompt_embeds = None
 
