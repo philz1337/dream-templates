@@ -37,7 +37,6 @@ import numpy as np
 from functools import lru_cache
 from weights import WeightsDownloadCache
 
-
 class Predictor(BasePredictor):
     def setup(self):
         """Load the model into memory to make running multiple predictions efficient"""
@@ -282,6 +281,8 @@ class Predictor(BasePredictor):
                 "controlnet_conditioning_image": control_image,
                 "image": image,
                 "strength": prompt_strength,
+                "prompt_embeds": prompt_embeds,
+                "negative_prompt_embeds":negative_prompt_embeds
             }
         elif control_image:
             print("Using ControlNet txt2img")
@@ -290,6 +291,8 @@ class Predictor(BasePredictor):
                 "image": control_image,
                 "width": width,
                 "height": height,
+                "prompt_embeds": prompt_embeds,
+                "negative_prompt_embeds":negative_prompt_embeds
             }
         elif image and mask:
             print("Using inpaint pipeline")
@@ -309,6 +312,8 @@ class Predictor(BasePredictor):
             extra_kwargs = {
                 "image": image,
                 "strength": prompt_strength,
+                "prompt_embeds": prompt_embeds,
+                "negative_prompt_embeds":negative_prompt_embeds
             }
         else:
             print("Using txt2img pipeline")
@@ -316,6 +321,8 @@ class Predictor(BasePredictor):
             extra_kwargs = {
                 "width": width,
                 "height": height,
+                "prompt_embeds": prompt_embeds,
+                "negative_prompt_embeds":negative_prompt_embeds
             }
 
         print("loading pipeline took: %0.2f" % (time.time() - start))
@@ -362,8 +369,6 @@ class Predictor(BasePredictor):
             this_seed = seed + idx
             generator = torch.Generator("cuda").manual_seed(this_seed)
             output = pipe(
-                prompt_embeds=prompt_embeds,
-                negative_prompt_embeds=negative_prompt_embeds,
                 guidance_scale=guidance_scale,
                 generator=generator,
                 num_inference_steps=num_inference_steps,
