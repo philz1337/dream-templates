@@ -271,6 +271,31 @@ class Predictor(BasePredictor):
             mask = self.load_image(mask)
         print("loading images took: %0.2f" % (time.time() - start))
 
+        # FIXME(ja): we shouldn't need to do this multiple times
+        # or perhaps we create the object each time?
+        
+
+        print("Loading compel...")
+        compel = Compel(
+            tokenizer=pipe.tokenizer,
+            text_encoder=pipe.text_encoder,
+        )
+
+        if prompt:
+            print("parsed prompt:", compel.parse_prompt_string(prompt))
+            prompt_embeds = compel(prompt)
+        else:
+            prompt_embeds = None
+
+        if negative_prompt:
+            print(
+                "parsed negative prompt:",
+                compel.parse_prompt_string(negative_prompt),
+            )
+            negative_prompt_embeds = compel(negative_prompt)
+        else:
+            negative_prompt_embeds = None
+
         start = time.time()
         if control_image and mask:
             raise ValueError("Cannot use controlnet and inpainting at the same time")
@@ -337,29 +362,6 @@ class Predictor(BasePredictor):
             )
 
         pipe.scheduler = make_scheduler(scheduler, pipe.scheduler.config)
-
-        # FIXME(ja): we shouldn't need to do this multiple times
-        # or perhaps we create the object each time?
-        print("Loading compel...")
-        compel = Compel(
-            tokenizer=pipe.tokenizer,
-            text_encoder=pipe.text_encoder,
-        )
-
-        if prompt:
-            print("parsed prompt:", compel.parse_prompt_string(prompt))
-            prompt_embeds = compel(prompt)
-        else:
-            prompt_embeds = None
-
-        if negative_prompt:
-            print(
-                "parsed negative prompt:",
-                compel.parse_prompt_string(negative_prompt),
-            )
-            negative_prompt_embeds = compel(negative_prompt)
-        else:
-            negative_prompt_embeds = None
 
         if disable_safety_check:
             pipe.safety_checker = None
