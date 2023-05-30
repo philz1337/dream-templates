@@ -55,7 +55,8 @@ class Predictor(BasePredictor):
 
         print("Loading latent upscaler...")
         self.latent_upscaler = StableDiffusionLatentUpscalePipeline.from_pretrained(
-            os.path.join(settings.MODEL_CACHE, "models--stabilityai--sd-x2-latent-upscaler"),
+            "stabilityai/sd-x2-latent-upscaler", 
+            cache_dir=settings.MODEL_CACHE,
             torch_dtype=torch.float16,
             local_files_only=True,
         ).to("cuda")
