@@ -53,12 +53,12 @@ class Predictor(BasePredictor):
             local_files_only=True,
         ).to("cuda")
 
-        # print("Loading latent upscaler...")
-        # self.latent_upscaler = StableDiffusionLatentUpscalePipeline.from_pretrained(
-        #     os.path.join(settings.MODEL_CACHE, "models--stabilityai--sd-x2-latent-upscaler"),
-        #     torch_dtype=torch.float16,
-        #     local_files_only=True,
-        # ).to("cuda")
+        print("Loading latent upscaler...")
+        self.latent_upscaler = StableDiffusionLatentUpscalePipeline.from_pretrained(
+            os.path.join(settings.MODEL_CACHE, "models--stabilityai--sd-x2-latent-upscaler"),
+            torch_dtype=torch.float16,
+            local_files_only=True,
+        ).to("cuda")
 
         self.weights_download_cache = WeightsDownloadCache()
 
@@ -168,17 +168,17 @@ class Predictor(BasePredictor):
                 safety_checker=pipe.safety_checker,
                 feature_extractor=pipe.feature_extractor,
             )
-        if kind == "latent_upscale":
-            return StableDiffusionLatentUpscalePipeline(
-                os.path.join(settings.MODEL_CACHE, "models--stabilityai--sd-x2-latent-upscaler"),
-                # vae=pipe.vae,
-                # text_encoder=pipe.text_encoder,
-                # tokenizer=pipe.tokenizer,
-                # unet=pipe.unet,
-                # scheduler=pipe.scheduler,
-                safety_checker=pipe.safety_checker,
-                # feature_extractor=pipe.feature_extractor,
-            )
+        # if kind == "latent_upscale":
+        #     return StableDiffusionLatentUpscalePipeline(
+        #         os.path.join(settings.MODEL_CACHE, "models--stabilityai--sd-x2-latent-upscaler"),
+        #         # vae=pipe.vae,
+        #         # text_encoder=pipe.text_encoder,
+        #         # tokenizer=pipe.tokenizer,
+        #         # unet=pipe.unet,
+        #         # scheduler=pipe.scheduler,
+        #         safety_checker=pipe.safety_checker,
+        #         # feature_extractor=pipe.feature_extractor,
+        #     )
 
     @torch.inference_mode()
     def predict(
@@ -362,14 +362,6 @@ class Predictor(BasePredictor):
                 "prompt_embeds": prompt_embeds,
                 "negative_prompt_embeds":negative_prompt_embeds
             }
-        elif latent_upscale > 0:
-            print("Using latent upscale pipeline")
-            pipe = self.get_pipeline(pipe, "latent_upscale")
-            extra_kwargs = {
-                "prompt": prompt,
-                "prompt_embeds": prompt_embeds,
-                "negative_prompt_embeds":negative_prompt_embeds
-            }
         else:
             print("Using txt2img pipeline")
             pipe = self.get_pipeline(pipe, "txt2img")
@@ -400,12 +392,33 @@ class Predictor(BasePredictor):
         for idx in range(num_outputs):
             this_seed = seed + idx
             generator = torch.Generator("cuda").manual_seed(this_seed)
-            output = pipe(
-                guidance_scale=guidance_scale,
-                generator=generator,
-                num_inference_steps=num_inference_steps,
-                **extra_kwargs,
-            )
+
+            if latent_upscale == 1:
+                low_res_latents = pipe(
+                    guidance_scale=guidance_scale,
+                    generator=generator,
+                    num_inference_steps=num_inference_steps,
+                    output_type="latent",
+                    **extra_kwargs,
+                )
+                output = self.latent_upscaler(
+                    image=low_res_latents,
+                    num_inference_steps=20,
+                    guidance_scale=0,
+                    generator=generator,
+                )
+                
+            else:
+                output = pipe(
+                    guidance_scale=guidance_scale,
+                    generator=generator,
+                    num_inference_steps=num_inference_steps,
+                    **extra_kwargs,
+                )
+
+            
+
+
 
             if output.nsfw_content_detected and output.nsfw_content_detected[0]:
                 continue
