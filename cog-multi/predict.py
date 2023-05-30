@@ -25,6 +25,7 @@ from diffusers import (
     StableDiffusionInpaintPipelineLegacy,
     StableDiffusionPipeline,
     UniPCMultistepScheduler,
+    StableDiffusionLatentUpscalePipeline
 )
 from diffusers.utils import load_image
 
@@ -160,6 +161,16 @@ class Predictor(BasePredictor):
                 safety_checker=pipe.safety_checker,
                 feature_extractor=pipe.feature_extractor,
             )
+        if kind == "latent_upscale":
+            return StableDiffusionLatentUpscalePipeline(
+                vae=pipe.vae,
+                text_encoder=pipe.text_encoder,
+                tokenizer=pipe.tokenizer,
+                unet=pipe.unet,
+                scheduler=pipe.scheduler,
+                safety_checker=pipe.safety_checker,
+                feature_extractor=pipe.feature_extractor,
+            )
 
     @torch.inference_mode()
     def predict(
@@ -243,6 +254,9 @@ class Predictor(BasePredictor):
         ),
         upscale_rate: float = Input(
             description="Rate for Upscaling. 1.0 corresponds to original image size", ge=1, le=20, default=1
+        ),
+        latent_upscale: int = Input(
+            description="Latent Upscale. 0= no upscaling, 1 = once, 2 = twice", ge=0, le=2, default=0, choices=[0,1,2]
         ),
     ) -> Iterator[Path]:
         """Run a single prediction on the model"""

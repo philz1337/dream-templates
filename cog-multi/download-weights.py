@@ -10,11 +10,16 @@ if os.path.exists(settings.MODEL_CACHE):
 os.makedirs(settings.MODEL_CACHE)
 
 import torch
-from diffusers import ControlNetModel
+from diffusers import ControlNetModel, StableDiffusionLatentUpscalePipeline
 from controlnet_aux import MidasDetector
 
 MidasDetector.from_pretrained(
     "lllyasviel/ControlNet",
+    cache_dir=settings.MODEL_CACHE,
+)
+
+StableDiffusionLatentUpscalePipeline.from_pretrained(
+    settings.LATENTUPSCALER_MODEL_PATH,
     cache_dir=settings.MODEL_CACHE,
 )
 
