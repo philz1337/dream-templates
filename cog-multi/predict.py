@@ -171,13 +171,13 @@ class Predictor(BasePredictor):
         if kind == "latent_upscale":
             return StableDiffusionLatentUpscalePipeline(
                 os.path.join(settings.MODEL_CACHE, "models--stabilityai--sd-x2-latent-upscaler"),
-                vae=pipe.vae,
-                text_encoder=pipe.text_encoder,
-                tokenizer=pipe.tokenizer,
-                unet=pipe.unet,
-                scheduler=pipe.scheduler,
+                # vae=pipe.vae,
+                # text_encoder=pipe.text_encoder,
+                # tokenizer=pipe.tokenizer,
+                # unet=pipe.unet,
+                # scheduler=pipe.scheduler,
                 safety_checker=pipe.safety_checker,
-                feature_extractor=pipe.feature_extractor,
+                # feature_extractor=pipe.feature_extractor,
             )
 
     @torch.inference_mode()
