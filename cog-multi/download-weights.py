@@ -18,9 +18,10 @@ MidasDetector.from_pretrained(
     cache_dir=settings.MODEL_CACHE,
 )
 
-StableDiffusionLatentUpscalePipeline.from_pretrained(
+latent_upscaler = StableDiffusionLatentUpscalePipeline.from_pretrained(
     settings.LATENTUPSCALER_MODEL_PATH,
     cache_dir=settings.MODEL_CACHE,
+    torch_dtype=torch.float16,
 )
 
 TMP_CACHE = "tmp_cache"
