@@ -53,6 +53,13 @@ class Predictor(BasePredictor):
             local_files_only=True,
         ).to("cuda")
 
+        # print("Loading latent upscaler...")
+        # self.latent_upscaler = StableDiffusionLatentUpscalePipeline.from_pretrained(
+        #     os.path.join(settings.MODEL_CACHE, "models--stabilityai--sd-x2-latent-upscaler"),
+        #     torch_dtype=torch.float16,
+        #     local_files_only=True,
+        # ).to("cuda")
+
         self.weights_download_cache = WeightsDownloadCache()
 
     def get_weights(self, weights: str):
@@ -163,6 +170,7 @@ class Predictor(BasePredictor):
             )
         if kind == "latent_upscale":
             return StableDiffusionLatentUpscalePipeline(
+                os.path.join(settings.MODEL_CACHE, "models--stabilityai--sd-x2-latent-upscaler"),
                 vae=pipe.vae,
                 text_encoder=pipe.text_encoder,
                 tokenizer=pipe.tokenizer,
@@ -351,6 +359,14 @@ class Predictor(BasePredictor):
             extra_kwargs = {
                 "image": image,
                 "strength": prompt_strength,
+                "prompt_embeds": prompt_embeds,
+                "negative_prompt_embeds":negative_prompt_embeds
+            }
+        elif latent_upscale > 0:
+            print("Using latent upscale pipeline")
+            pipe = self.get_pipeline(pipe, "latent_upscale")
+            extra_kwargs = {
+                "prompt": prompt,
                 "prompt_embeds": prompt_embeds,
                 "negative_prompt_embeds":negative_prompt_embeds
             }
