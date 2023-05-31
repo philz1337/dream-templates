@@ -426,7 +426,7 @@ class Predictor(BasePredictor):
                     output_type="latent",
                     **extra_kwargs,
                 ).images
-                
+
                 output = self.latent_upscaler(
                     prompt=prompt,
                     negative_prompt=negative_prompt,
@@ -448,8 +448,8 @@ class Predictor(BasePredictor):
 
 
 
-            if output.nsfw_content_detected and output.nsfw_content_detected[0]:
-                continue
+            # if output.nsfw_content_detected and output.nsfw_content_detected[0]:
+            #     continue
 
             output_path = f"/tmp/seed-{this_seed}.png"
             output.images[0].save(output_path)
