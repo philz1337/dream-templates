@@ -53,13 +53,7 @@ class Predictor(BasePredictor):
             local_files_only=True,
         ).to("cuda")
 
-        print("Loading latent upscaler...")
-        self.latent_upscaler = StableDiffusionLatentUpscalePipeline.from_pretrained(
-            "stabilityai/sd-x2-latent-upscaler", 
-            cache_dir=settings.MODEL_CACHE,
-            torch_dtype=torch.float16,
-            local_files_only=True,
-        ).to("cuda")
+
 
         self.weights_download_cache = WeightsDownloadCache()
 
@@ -283,6 +277,16 @@ class Predictor(BasePredictor):
         start = time.time()
         pipe = self.get_weights(weights)
         print("loading weights took: %0.2f" % (time.time() - start))
+
+        start = time.time()
+        print("Loading latent upscaler...")
+        self.latent_upscaler = StableDiffusionLatentUpscalePipeline.from_pretrained(
+            "stabilityai/sd-x2-latent-upscaler", 
+            cache_dir=settings.MODEL_CACHE,
+            torch_dtype=torch.float16,
+            local_files_only=True,
+        ).to("cuda")
+        print("loading latent upscaler took: %0.2f" % (time.time() - start))
 
         start = time.time()
         if image:
