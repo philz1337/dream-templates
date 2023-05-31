@@ -268,7 +268,7 @@ class Predictor(BasePredictor):
         ),
         latent_upscale: int = Input(
             description="Rate for Latent Upscaling. 1.0 corresponds to original image size.",
-            choices=[1, 2, 4],
+            choices=[1, 2],
             default=1,
         ),
     ) -> Iterator[Path]:
@@ -408,34 +408,19 @@ class Predictor(BasePredictor):
                     **extra_kwargs,
                 ).images
 
-                output = self.latent_upscaler(
-                    prompt=prompt,
-                    negative_prompt=negative_prompt,
-                    image=low_res_latents,
-                    num_inference_steps=20,
-                    guidance_scale=0,
-                    generator=generator,
-                )
-
-            elif latent_upscale == 4:
-                print("upscaling x4 not working yet")
-                low_res_latents = pipe(
-                    guidance_scale=guidance_scale,
-                    generator=generator,
-                    num_inference_steps=num_inference_steps,
-                    output_type="latent",
-                    **extra_kwargs,
-                ).images
-
-                output = self.latent_upscaler(
-                    prompt=prompt,
-                    negative_prompt=negative_prompt,
-                    image=low_res_latents,
-                    num_inference_steps=20,
-                    guidance_scale=0,
-                    generator=generator,
-                )
+                self.latent_upscaler.enable_sequential_cpu_offload()
                 
+                output = self.latent_upscaler(
+                    prompt=prompt,
+                    negative_prompt=negative_prompt,
+                    image=low_res_latents,
+                    num_inference_steps=20,
+                    guidance_scale=0,
+                    generator=generator,
+    
+                )
+
+                    
             else:
                 output = pipe(
                     guidance_scale=guidance_scale,
