@@ -417,7 +417,7 @@ class Predictor(BasePredictor):
                     generator=generator,
                 )
 
-            if latent_upscale == 4:
+            elif latent_upscale == 4:
                 print("upscaling x4 not working yet")
                 low_res_latents = pipe(
                     guidance_scale=guidance_scale,
@@ -425,7 +425,8 @@ class Predictor(BasePredictor):
                     num_inference_steps=num_inference_steps,
                     output_type="latent",
                     **extra_kwargs,
-                )
+                ).images
+                
                 output = self.latent_upscaler(
                     prompt=prompt,
                     negative_prompt=negative_prompt,
