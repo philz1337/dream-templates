@@ -267,7 +267,7 @@ class Predictor(BasePredictor):
             description="Rate for Upscaling. 1.0 corresponds to original image size", ge=1, le=20, default=1
         ),
         latent_upscale: int = Input(
-            description="Latent Upscale. 0= no upscaling, 1 = once, 2 = twice", ge=0, le=2, default=0, choices=[0,1,2]
+            description="Latent Upscale. 0= no upscaling, 1 = once, 2 = twice", ge=1, le=4, default=0, choices=[1,2,4]
         ),
     ) -> Iterator[Path]:
         """Run a single prediction on the model"""
@@ -397,20 +397,6 @@ class Predictor(BasePredictor):
             this_seed = seed + idx
             generator = torch.Generator("cuda").manual_seed(this_seed)
 
-            if latent_upscale == 1:
-                low_res_latents = pipe(
-                    guidance_scale=guidance_scale,
-                    generator=generator,
-                    num_inference_steps=num_inference_steps,
-                    output_type="latent",
-                    **extra_kwargs,
-                )
-                output = self.latent_upscaler(
-                    image=low_res_latents,
-                    num_inference_steps=20,
-                    guidance_scale=0,
-                    generator=generator,
-                )
             if latent_upscale == 2:
                 low_res_latents = pipe(
                     guidance_scale=guidance_scale,
@@ -419,6 +405,16 @@ class Predictor(BasePredictor):
                     output_type="latent",
                     **extra_kwargs,
                 )
+                output = self.latent_upscaler(
+                    prompt=prompt,
+                    negative_prompt=negative_prompt,
+                    image=low_res_latents,
+                    num_inference_steps=20,
+                    guidance_scale=0,
+                    generator=generator,
+                )
+            if latent_upscale == 4:
+                print("upscaling x4 not working yet")
                 low_res_latents = pipe(
                     guidance_scale=guidance_scale,
                     generator=generator,
@@ -427,7 +423,9 @@ class Predictor(BasePredictor):
                     **extra_kwargs,
                 )
                 output = self.latent_upscaler(
-                    image=output,
+                    prompt=prompt,
+                    negative_prompt=negative_prompt,
+                    image=low_res_latents,
                     num_inference_steps=20,
                     guidance_scale=0,
                     generator=generator,
