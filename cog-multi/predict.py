@@ -411,6 +411,27 @@ class Predictor(BasePredictor):
                     guidance_scale=0,
                     generator=generator,
                 )
+            if latent_upscale == 2:
+                low_res_latents = pipe(
+                    guidance_scale=guidance_scale,
+                    generator=generator,
+                    num_inference_steps=num_inference_steps,
+                    output_type="latent",
+                    **extra_kwargs,
+                )
+                low_res_latents = pipe(
+                    guidance_scale=guidance_scale,
+                    generator=generator,
+                    num_inference_steps=num_inference_steps,
+                    output_type="latent",
+                    **extra_kwargs,
+                )
+                output = self.latent_upscaler(
+                    image=output,
+                    num_inference_steps=20,
+                    guidance_scale=0,
+                    generator=generator,
+                )
                 
             else:
                 output = pipe(
