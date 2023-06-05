@@ -380,9 +380,12 @@ class Predictor(BasePredictor):
             )
             
             if upscale_afterwards:
+                img = output.images[0]
+                img = self.upscale(img, upscale_rate)
+                
                 pipe = self.get_pipeline(pipe, "img2img")
                 extra_kwargs = {
-                    "image": output.images[0],
+                    "image": img,
                     "strength": prompt_strength,
                     "prompt_embeds": prompt_embeds,
                     "negative_prompt_embeds":negative_prompt_embeds
