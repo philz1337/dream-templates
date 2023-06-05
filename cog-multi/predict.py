@@ -234,12 +234,8 @@ class Predictor(BasePredictor):
         info: bool = Input(
             description="log extra information about the run", default=False
         ),
-        upscaler: str = Input(
-            default="Plain",
-            choices=[
-                "Plain",
-            ],
-            description="Choose a upscaler.",
+        upscale_afterwards: bool = Input(
+            description="upscale image after image generation", default=False
         ),
         upscale_rate: float = Input(
             description="Rate for Upscaling. 1.0 corresponds to original image size", ge=1, le=20, default=1
@@ -376,6 +372,21 @@ class Predictor(BasePredictor):
                 num_inference_steps=num_inference_steps,
                 **extra_kwargs,
             )
+            
+            if upscale_afterwards:
+                pipe = self.get_pipeline(pipe, "img2img")
+                extra_kwargs = {
+                    "image": output.images[0],
+                    "strength": prompt_strength,
+                    "prompt_embeds": prompt_embeds,
+                    "negative_prompt_embeds":negative_prompt_embeds
+                }
+                output = pipe(
+                    guidance_scale=guidance_scale,
+                    generator=generator,
+                    num_inference_steps=num_inference_steps,
+                    **extra_kwargs,
+                )
 
             if output.nsfw_content_detected and output.nsfw_content_detected[0]:
                 continue
