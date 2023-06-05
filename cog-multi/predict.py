@@ -408,8 +408,6 @@ class Predictor(BasePredictor):
                     **extra_kwargs,
                 ).images
 
-                self.latent_upscaler.enable_sequential_cpu_offload()
-                
                 output = self.latent_upscaler(
                     prompt=prompt,
                     negative_prompt=negative_prompt,
@@ -417,7 +415,7 @@ class Predictor(BasePredictor):
                     num_inference_steps=20,
                     guidance_scale=0,
                     generator=generator,
-    
+
                 )
 
                     
