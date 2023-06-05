@@ -240,6 +240,12 @@ class Predictor(BasePredictor):
         upscale_rate: float = Input(
             description="Rate for Upscaling. 1.0 corresponds to original image size", ge=1, le=20, default=1
         ),
+        upscale_num_inference_steps: int = Input(
+            description="Number of denoising steps", ge=1, le=500, default=50
+        ),
+        upscale_guidance_scale: float = Input(
+            description="Scale for classifier-free guidance", ge=1, le=20, default=7.5
+        ),
     ) -> Iterator[Path]:
         """Run a single prediction on the model"""
 
