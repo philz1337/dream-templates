@@ -234,17 +234,35 @@ class Predictor(BasePredictor):
         info: bool = Input(
             description="log extra information about the run", default=False
         ),
-        upscale_afterwards: bool = Input(
-            description="upscale image after image generation", default=False
-        ),
         upscale_rate: float = Input(
             description="Rate for Upscaling. 1.0 corresponds to original image size", ge=1, le=20, default=1
+        ),
+        upscale_afterwards: bool = Input(
+            description="upscale image after image generation", default=False
         ),
         upscale_num_inference_steps: int = Input(
             description="Number of denoising steps", ge=1, le=500, default=50
         ),
         upscale_guidance_scale: float = Input(
             description="Scale for classifier-free guidance", ge=1, le=20, default=7.5
+        ),
+        upscale_prompt_strength: float = Input(
+            description="Prompt strength when using init image. 1.0 corresponds to full destruction of information in init image",
+            default=0.8,
+        ),
+        upscale_scheduler: str = Input(
+            default="DPMSolverMultistep",
+            choices=[
+                "DDIM",
+                "DPMSolverMultistep",
+                "HeunDiscrete",
+                "K_EULER_ANCESTRAL",
+                "K_EULER",
+                "KLMS",
+                "PNDM",
+                "UniPCMultistep",
+            ],
+            description="Choose a scheduler."
         ),
     ) -> Iterator[Path]:
         """Run a single prediction on the model"""
@@ -384,17 +402,16 @@ class Predictor(BasePredictor):
                 img = self.upscale(img, upscale_rate)
                 
                 pipe = self.get_pipeline(pipe, "img2img")
-                extra_kwargs = {
-                    "image": img,
-                    "strength": prompt_strength,
-                    "prompt_embeds": prompt_embeds,
-                    "negative_prompt_embeds":negative_prompt_embeds
-                }
+
+                pipe.scheduler = make_scheduler(upscale_scheduler, pipe.scheduler.config)
                 output = pipe(
-                    guidance_scale=guidance_scale,
+                    guidance_scale=upscale_guidance_scale,
                     generator=generator,
-                    num_inference_steps=num_inference_steps,
-                    **extra_kwargs,
+                    num_inference_steps=upscale_num_inference_steps,
+                    image=image,
+                    strength=upscale_prompt_strength,
+                    prompt_embeds=prompt_embeds,
+                    negative_prompt_embeds=negative_prompt_embeds
                 )
 
             if output.nsfw_content_detected and output.nsfw_content_detected[0]:
