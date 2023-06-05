@@ -402,16 +402,19 @@ class Predictor(BasePredictor):
                 img = self.upscale(img, upscale_rate)
                 
                 pipe = self.get_pipeline(pipe, "img2img")
-
+                extra_kwargs = {
+                    "image": img,
+                    "strength": upscale_prompt_strength,
+                    "prompt_embeds": prompt_embeds,
+                    "negative_prompt_embeds":negative_prompt_embeds
+                }
                 pipe.scheduler = make_scheduler(upscale_scheduler, pipe.scheduler.config)
+                
                 output = pipe(
                     guidance_scale=upscale_guidance_scale,
                     generator=generator,
                     num_inference_steps=upscale_num_inference_steps,
-                    image=image,
-                    strength=upscale_prompt_strength,
-                    prompt_embeds=prompt_embeds,
-                    negative_prompt_embeds=negative_prompt_embeds
+                    **extra_kwargs,                
                 )
 
             if output.nsfw_content_detected and output.nsfw_content_detected[0]:
