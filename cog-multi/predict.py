@@ -240,14 +240,17 @@ class Predictor(BasePredictor):
         upscale_afterwards: bool = Input(
             description="upscale image after image generation", default=False
         ),
+        output_raw: bool = Input(
+            description="Output the raw result when upscaling afterwards", default=False
+        ),
         upscale_num_inference_steps: int = Input(
-            description="Number of denoising steps", ge=1, le=500, default=50
+            description="Upscaler: Number of denoising steps", ge=1, le=500, default=50
         ),
         upscale_guidance_scale: float = Input(
-            description="Scale for classifier-free guidance", ge=1, le=20, default=7.5
+            description="Upscaler: Scale for classifier-free guidance", ge=1, le=20, default=7.5
         ),
         upscale_prompt_strength: float = Input(
-            description="Prompt strength when using init image. 1.0 corresponds to full destruction of information in init image",
+            description="Upscaler: Prompt strength when using init image. 1.0 corresponds to full destruction of information in init image",
             default=0.8,
         ),
         upscale_scheduler: str = Input(
@@ -262,7 +265,7 @@ class Predictor(BasePredictor):
                 "PNDM",
                 "UniPCMultistep",
             ],
-            description="Choose a scheduler."
+            description="Upscaler: Choose a scheduler."
         ),
     ) -> Iterator[Path]:
         """Run a single prediction on the model"""
@@ -399,6 +402,12 @@ class Predictor(BasePredictor):
             
             if upscale_afterwards:
                 img = output.images[0]
+
+                if output_raw:
+                    output_path = Path(f"/tmp/seed-{this_seed}-raw.png")
+                    img.save(output_path)
+                    yield Path(output_path)
+
                 img = self.upscale(img, upscale_rate)
                 
                 pipe = self.get_pipeline(pipe, "img2img")
