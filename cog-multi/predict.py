@@ -235,10 +235,13 @@ class Predictor(BasePredictor):
             description="log extra information about the run", default=False
         ),
         upscale_rate: float = Input(
-            description="Rate for Upscaling. 1.0 corresponds to original image size", ge=1, le=20, default=1
+            description="Rate for Plain Upscaling. 1.0 corresponds to original image size", ge=1, le=20, default=1
         ),
         upscale_afterwards: bool = Input(
             description="upscale image after image generation", default=False
+        ),
+        upscale_afterwards_rate: float = Input(
+            description="Rate for Upscaling. 1.0 corresponds to original image size", ge=1, le=20, default=1
         ),
         output_raw: bool = Input(
             description="Output the raw result when upscaling afterwards", default=False
@@ -412,7 +415,7 @@ class Predictor(BasePredictor):
                     img.save(output_path)
                     yield Path(output_path)
 
-                img = self.upscale(img, upscale_rate)
+                img = self.upscale(img, upscale_afterwards_rate)
                 
                 upscale_kwargs = {
                     "image": img,
