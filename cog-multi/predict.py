@@ -244,17 +244,17 @@ class Predictor(BasePredictor):
             description="Output the raw result when upscaling afterwards", default=False
         ),
         upscale_num_inference_steps: int = Input(
-            description="Upscaler: Number of denoising steps", ge=1, le=500, default=50
+            description="Upscaler: Number of denoising steps", ge=1, le=500, default=20
         ),
         upscale_guidance_scale: float = Input(
-            description="Upscaler: Scale for classifier-free guidance", ge=1, le=20, default=7.5
+            description="Upscaler: Scale for classifier-free guidance", ge=1, le=20, default=12
         ),
         upscale_prompt_strength: float = Input(
             description="Upscaler: Prompt strength when using init image. 1.0 corresponds to full destruction of information in init image",
-            default=0.8,
+            default=0.2,
         ),
         upscale_scheduler: str = Input(
-            default="DPMSolverMultistep",
+            default="DDIM",
             choices=[
                 "DDIM",
                 "DPMSolverMultistep",
