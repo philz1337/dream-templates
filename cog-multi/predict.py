@@ -373,6 +373,15 @@ class Predictor(BasePredictor):
                 "negative_prompt_embeds":negative_prompt_embeds
             }
 
+        if upscale_afterwards: 
+            print("Using upscale pipeline")
+            upscale_pipe = self.get_pipeline(pipe, "img2img")
+            upscale_kwargs = {
+                    "image": img,
+                    "strength": upscale_prompt_strength,
+                    "prompt_embeds": prompt_embeds,
+                    "negative_prompt_embeds":negative_prompt_embeds
+                }
         print("loading pipeline took: %0.2f" % (time.time() - start))
 
         if seed is None:
@@ -410,20 +419,13 @@ class Predictor(BasePredictor):
 
                 img = self.upscale(img, upscale_rate)
                 
-                pipe = self.get_pipeline(pipe, "img2img")
-                extra_kwargs = {
-                    "image": img,
-                    "strength": upscale_prompt_strength,
-                    "prompt_embeds": prompt_embeds,
-                    "negative_prompt_embeds":negative_prompt_embeds
-                }
-                pipe.scheduler = make_scheduler(upscale_scheduler, pipe.scheduler.config)
+                upscale_pipe.scheduler = make_scheduler(upscale_scheduler, pipe.scheduler.config)
                 
-                output = pipe(
+                output = upscale_pipe(
                     guidance_scale=upscale_guidance_scale,
                     generator=generator,
                     num_inference_steps=upscale_num_inference_steps,
-                    **extra_kwargs,                
+                    **upscale_kwargs,                
                 )
 
             if output.nsfw_content_detected and output.nsfw_content_detected[0]:
