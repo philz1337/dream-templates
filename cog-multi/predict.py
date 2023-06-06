@@ -395,6 +395,8 @@ class Predictor(BasePredictor):
 
         if disable_safety_check:
             pipe.safety_checker = None
+            upscale_pipe.safety_checker = None
+
 
         result_count = 0
         for idx in range(num_outputs):
