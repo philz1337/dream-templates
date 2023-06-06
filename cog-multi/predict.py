@@ -376,12 +376,7 @@ class Predictor(BasePredictor):
         if upscale_afterwards: 
             print("Using upscale pipeline")
             upscale_pipe = self.get_pipeline(pipe, "img2img")
-            upscale_kwargs = {
-                    "image": img,
-                    "strength": upscale_prompt_strength,
-                    "prompt_embeds": prompt_embeds,
-                    "negative_prompt_embeds":negative_prompt_embeds
-                }
+            
         print("loading pipeline took: %0.2f" % (time.time() - start))
 
         if seed is None:
@@ -419,8 +414,15 @@ class Predictor(BasePredictor):
 
                 img = self.upscale(img, upscale_rate)
                 
+                upscale_kwargs = {
+                    "image": img,
+                    "strength": upscale_prompt_strength,
+                    "prompt_embeds": prompt_embeds,
+                    "negative_prompt_embeds":negative_prompt_embeds
+                }
+
                 upscale_pipe.scheduler = make_scheduler(upscale_scheduler, pipe.scheduler.config)
-                
+
                 output = upscale_pipe(
                     guidance_scale=upscale_guidance_scale,
                     generator=generator,
