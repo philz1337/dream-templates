@@ -30,7 +30,7 @@ from diffusers.utils import load_image
 
 import settings
 from stable_diffusion_controlnet_img2img import StableDiffusionControlNetImg2ImgPipeline
-from controlnet_aux import MidasDetector
+from controlnet_aux import MidasDetector, OpenposeDetector
 
 from PIL import Image
 import numpy as np
@@ -43,6 +43,12 @@ class Predictor(BasePredictor):
         print("Loading midas...")
         self.midas = MidasDetector.from_pretrained(
             "lllyasviel/ControlNet", cache_dir=settings.MODEL_CACHE
+        )
+
+        print("Loading pose...")
+        self.openpose = OpenposeDetector.from_pretrained(
+            "lllyasviel/ControlNet",
+            cache_dir=settings.MODEL_CACHE,
         )
 
         print("Loading controlnet...")
@@ -117,6 +123,12 @@ class Predictor(BasePredictor):
         image = image[:, :, None]
         image = np.concatenate([image, image, image], axis=2)
         return Image.fromarray(image)
+
+    def process_control_openpose(self, control_image_openpose):
+        if control_image_openpose is None:
+            return None
+
+        return self.openpose(control_image_openpose)
 
     def get_pipeline(self, pipe, kind):
         if kind == "txt2img":
@@ -328,6 +340,9 @@ class Predictor(BasePredictor):
         if control_image:
             control_image = self.load_image(control_image)
             control_image = self.process_control(control_image)
+        if control_image_openpose:
+            control_image_openpose = self.load_image(control_image_openpose)
+            control_image_openpose = self.process_control_openpose(control_image_openpose)
         if mask:
             mask = self.load_image(mask)
         print("loading images took: %0.2f" % (time.time() - start))
