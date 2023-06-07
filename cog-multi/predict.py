@@ -467,7 +467,8 @@ class Predictor(BasePredictor):
 
         if disable_safety_check:
             pipe.safety_checker = None
-            upscale_pipe.safety_checker = None
+            if upscale_afterwards:
+                upscale_pipe.safety_checker = None
 
 
         result_count = 0
