@@ -33,4 +33,13 @@ cn = ControlNetModel.from_pretrained(
 cn.half()
 cn.save_pretrained(os.path.join(settings.MODEL_CACHE, 'depth'))
 
+cn_pose = ControlNetModel.from_pretrained(
+    settings.CONTROLNET_MODEL_OPENPOSE,
+    torch_dtype=torch.float16,
+    cache_dir=TMP_CACHE,
+)
+cn_pose.half()
+cn_pose.save_pretrained(os.path.join(settings.MODEL_CACHE, 'openpose'))
+
+
 shutil.rmtree(TMP_CACHE)
