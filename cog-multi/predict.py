@@ -52,6 +52,13 @@ class Predictor(BasePredictor):
             local_files_only=True,
         ).to("cuda")
 
+        print("Loading controlnet openpose...")
+        self.controlnet_openpose = ControlNetModel.from_pretrained(
+            os.path.join(settings.MODEL_CACHE, "openpose"),
+            torch_dtype=torch.float16,
+            local_files_only=True,
+        ).to("cuda")
+
         self.weights_download_cache = WeightsDownloadCache()
 
     def get_weights(self, weights: str):
@@ -137,6 +144,18 @@ class Predictor(BasePredictor):
                 feature_extractor=pipe.feature_extractor,
                 controlnet=self.controlnet,
             )
+        
+        if kind == "cnet_txt2img_openpose":
+            return StableDiffusionControlNetPipeline(
+                vae=pipe.vae,
+                text_encoder=pipe.text_encoder,
+                tokenizer=pipe.tokenizer,
+                unet=pipe.unet,
+                scheduler=pipe.scheduler,
+                safety_checker=pipe.safety_checker,
+                feature_extractor=pipe.feature_extractor,
+                controlnet=self.controlnet_openpose,
+            )
 
         if kind == "cnet_img2img":
             return StableDiffusionControlNetImg2ImgPipeline(
@@ -148,6 +167,18 @@ class Predictor(BasePredictor):
                 safety_checker=pipe.safety_checker,
                 feature_extractor=pipe.feature_extractor,
                 controlnet=self.controlnet,
+            )
+        
+        if kind == "cnet_img2img_openpose":
+            return StableDiffusionControlNetImg2ImgPipeline(
+                vae=pipe.vae,
+                text_encoder=pipe.text_encoder,
+                tokenizer=pipe.tokenizer,
+                unet=pipe.unet,
+                scheduler=pipe.scheduler,
+                safety_checker=pipe.safety_checker,
+                feature_extractor=pipe.feature_extractor,
+                controlnet=self.controlnet_openpose,
             )
 
         if kind == "inpaint":
@@ -166,6 +197,10 @@ class Predictor(BasePredictor):
         self,
         control_image: Path = Input(
             description="Optional Image to use for guidance based on Midas depth",
+            default=None,
+        ),
+        control_image_openpose: Path = Input(
+            description="Optional Image to use for guidance based on Midas openpose",
             default=None,
         ),
         weights: str = Input(
@@ -325,6 +360,8 @@ class Predictor(BasePredictor):
         start = time.time()
         if control_image and mask:
             raise ValueError("Cannot use controlnet and inpainting at the same time")
+        if control_image and control_image_openpose:
+            raise ValueError("Cannot use two different controlnets at the same time")
         elif control_image and image:
             print("Using ControlNet img2img")
             pipe = self.get_pipeline(pipe, "cnet_img2img")
@@ -340,6 +377,26 @@ class Predictor(BasePredictor):
             pipe = self.get_pipeline(pipe, "cnet_txt2img")
             extra_kwargs = {
                 "image": control_image,
+                "width": width,
+                "height": height,
+                "prompt_embeds": prompt_embeds,
+                "negative_prompt_embeds":negative_prompt_embeds
+            }
+        elif control_image_openpose and image:
+            print("Using ControlNet img2img with openpose")
+            pipe = self.get_pipeline(pipe, "cnet_img2img_openpose")
+            extra_kwargs = {
+                "controlnet_conditioning_image": control_image_openpose,
+                "image": image,
+                "strength": prompt_strength,
+                "prompt_embeds": prompt_embeds,
+                "negative_prompt_embeds":negative_prompt_embeds
+            }
+        elif control_image_openpose:
+            print("Using ControlNet txt2img with openpose")
+            pipe = self.get_pipeline(pipe, "cnet_txt2img_openpose")
+            extra_kwargs = {
+                "image": control_image_openpose,
                 "width": width,
                 "height": height,
                 "prompt_embeds": prompt_embeds,
