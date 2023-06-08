@@ -141,7 +141,7 @@ class Predictor(BasePredictor):
                 tokenizer=pipe.tokenizer,
                 unet=pipe.unet,
                 scheduler=pipe.scheduler,
-                safety_checker=pipe.safety_checker,
+                safety_checker=None,
                 feature_extractor=pipe.feature_extractor,
             )
 
@@ -152,7 +152,7 @@ class Predictor(BasePredictor):
                 tokenizer=pipe.tokenizer,
                 unet=pipe.unet,
                 scheduler=pipe.scheduler,
-                safety_checker=pipe.safety_checker,
+                safety_checker=None,
                 feature_extractor=pipe.feature_extractor,
                 controlnet=self.controlnet,
             )
@@ -164,7 +164,7 @@ class Predictor(BasePredictor):
                 tokenizer=pipe.tokenizer,
                 unet=pipe.unet,
                 scheduler=pipe.scheduler,
-                safety_checker=pipe.safety_checker,
+                safety_checker=None,
                 feature_extractor=pipe.feature_extractor,
                 controlnet=self.controlnet_openpose,
             )
@@ -176,7 +176,7 @@ class Predictor(BasePredictor):
                 tokenizer=pipe.tokenizer,
                 unet=pipe.unet,
                 scheduler=pipe.scheduler,
-                safety_checker=pipe.safety_checker,
+                safety_checker=None,
                 feature_extractor=pipe.feature_extractor,
                 controlnet=self.controlnet,
             )
@@ -188,7 +188,7 @@ class Predictor(BasePredictor):
                 tokenizer=pipe.tokenizer,
                 unet=pipe.unet,
                 scheduler=pipe.scheduler,
-                safety_checker=pipe.safety_checker,
+                safety_checker=None,
                 feature_extractor=pipe.feature_extractor,
                 controlnet=self.controlnet_openpose,
             )
@@ -200,7 +200,7 @@ class Predictor(BasePredictor):
                 tokenizer=pipe.tokenizer,
                 unet=pipe.unet,
                 scheduler=pipe.scheduler,
-                safety_checker=pipe.safety_checker,
+                safety_checker=None,
                 feature_extractor=pipe.feature_extractor,
             )
 
@@ -464,12 +464,6 @@ class Predictor(BasePredictor):
             )
 
         pipe.scheduler = make_scheduler(scheduler, pipe.scheduler.config)
-
-        if disable_safety_check:
-            pipe.safety_checker = None
-            if upscale_afterwards:
-                upscale_pipe.safety_checker = None
-
 
         result_count = 0
         for idx in range(num_outputs):
