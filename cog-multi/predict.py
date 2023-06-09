@@ -143,7 +143,7 @@ class Predictor(BasePredictor):
         path = self.weights_download_cache.ensure(url)
                 
         start = time.time()
-        tokenizer, text_encoder = self.load_textual_inversion(self, path, concept)
+        tokenizer, text_encoder = self.load_textual_inversion(path, concept)
         print("loading textual inversion took: %0.2f" % (time.time() - start))
        
         return self.gpu_weights(path, tokenizer, text_encoder)
