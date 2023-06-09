@@ -465,7 +465,7 @@ class Predictor(BasePredictor):
 
         pipe.scheduler = make_scheduler(scheduler, pipe.scheduler.config)
 
-        pipe.load_textual_inversion("https://huggingface.co/philz1337/ti-negative-hand/resolve/main/negative_hand-neg.pt")
+        pipe.load_textual_inversion("ti-cache/negative_hand-neg.pt")
 
         result_count = 0
         for idx in range(num_outputs):
