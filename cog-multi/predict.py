@@ -87,8 +87,6 @@ class Predictor(BasePredictor):
         print("repo_id_embeds: ", repo_id_embeds)
         embeds_path = hf_hub_download(
             repo_id=repo_id_embeds,
-            filename="learned_embeds.bin",
-            cache_dir=repo_id_embeds,
             local_files_only=True,
         )
         print("embeds_path: ", embeds_path)
