@@ -75,15 +75,11 @@ class Predictor(BasePredictor):
     def load_textual_inversion(self, path: str, concept: str):
         self.tokenizer = CLIPTokenizer.from_pretrained(
             path,
-            subfolder="tokenizer",
-            cache_dir="pretrain/tokenizer",
             local_files_only=True,
         )
 
         self.text_encoder = CLIPTextModel.from_pretrained(
             path,
-            subfolder="text_encoder",
-            cache_dir="pretrain/text_encoder",
             local_files_only=True,
         )
     
