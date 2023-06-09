@@ -81,7 +81,7 @@ class Predictor(BasePredictor):
         )
 
         self.text_encoder = CLIPTextModel.from_pretrained(
-            self.path,
+            path,
             subfolder="text_encoder",
             cache_dir="pretrain/text_encoder",
             local_files_only=True,
