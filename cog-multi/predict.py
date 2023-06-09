@@ -467,10 +467,9 @@ class Predictor(BasePredictor):
 
         pipe.scheduler = make_scheduler(scheduler, pipe.scheduler.config)
 
-        if disable_safety_check:
-            pipe.safety_checker = None
-            if upscale_afterwards:
-                upscale_pipe.safety_checker = None
+        pipe.safety_checker = None
+        if upscale_afterwards:
+            upscale_pipe.safety_checker = None
 
 
         result_count = 0
