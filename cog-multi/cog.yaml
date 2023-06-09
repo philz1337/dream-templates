@@ -11,9 +11,10 @@ build:
     - "scipy==1.9.3"
     - "transformers==4.27.1"
     - "accelerate==0.17.1"
+    - "huggingface_hub==0.15.1"
   system_packages:
     - ffmpeg
-    - libsm6 
+    - libsm6
     - libxext6
   run:
     - "pip install git+https://github.com/patrickvonplaten/controlnet_aux.git@dfb604120af6e5acf21936f79aecb046d0faaa29"

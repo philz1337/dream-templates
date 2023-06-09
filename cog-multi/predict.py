@@ -37,6 +37,11 @@ import numpy as np
 from functools import lru_cache
 from weights import WeightsDownloadCache
 
+from transformers import CLIPTextModel, CLIPTokenizer
+from huggingface_hub import hf_hub_download
+with open("textual-inversion-concepts.txt") as infile:
+    CONCEPTS = [line.rstrip() for line in infile]
+
 class Predictor(BasePredictor):
     def setup(self):
         """Load the model into memory to make running multiple predictions efficient"""
@@ -67,7 +72,66 @@ class Predictor(BasePredictor):
 
         self.weights_download_cache = WeightsDownloadCache()
 
-    def get_weights(self, weights: str):
+    def load_textual_inversion(self, path: str, concept: str):
+        self.tokenizer = CLIPTokenizer.from_pretrained(
+            path,
+            subfolder="tokenizer",
+            cache_dir="pretrain/tokenizer",
+            local_files_only=True,
+        )
+
+        self.text_encoder = CLIPTextModel.from_pretrained(
+            self.path,
+            subfolder="text_encoder",
+            cache_dir="pretrain/text_encoder",
+            local_files_only=True,
+        )
+    
+        repo_id_embeds = concept.split(":")[0]
+        print("repo_id_embeds: ", repo_id_embeds)
+        embeds_path = hf_hub_download(
+            repo_id=repo_id_embeds,
+            filename="learned_embeds.bin",
+            cache_dir=repo_id_embeds,
+            local_files_only=True,
+        )
+        print("embeds_path: ", embeds_path)
+        token_path = hf_hub_download(
+            repo_id=repo_id_embeds,
+            filename="token_identifier.txt",
+            cache_dir=repo_id_embeds,
+            local_files_only=True,
+        )
+        
+        with open(token_path, "r") as file:
+            placeholder = file.read()
+
+        print(f"The placeholder token for your concept is {placeholder}.")
+        
+        loaded_learned_embeds = torch.load(embeds_path, map_location="cpu")
+
+        # separate token and the embeds
+        trained_token = list(loaded_learned_embeds.keys())[0]
+        embeds = loaded_learned_embeds[trained_token]
+
+        # cast to dtype of text_encoder
+        dtype = self.text_encoder.get_input_embeddings().weight.dtype
+        embeds.to(dtype)
+
+        # add the token in tokenizer
+        num_added_tokens = self.tokenizer.add_tokens(trained_token)
+        print(f"{num_added_tokens} new tokens added.")
+
+        # resize the token embeddings
+        self.text_encoder.resize_token_embeddings(len(self.tokenizer))
+
+        # get the id for the token and assign the embeds
+        token_id = self.tokenizer.convert_tokens_to_ids(trained_token)
+        self.text_encoder.get_input_embeddings().weight.data[token_id] = embeds
+
+        return self.tokenizer, self.text_encoder
+
+    def get_weights(self, weights: str, concept: str):
         if weights.startswith("https://"):
             url = weights
         else:
@@ -77,15 +141,22 @@ class Predictor(BasePredictor):
             url = url.replace('replicate.delivery/pbxt', 'storage.googleapis.com/replicate-files')
 
         path = self.weights_download_cache.ensure(url)
-        return self.gpu_weights(path)
+                
+        start = time.time()
+        tokenizer, text_encoder = self.load_textual_inversion(self, path, concept)
+        print("loading textual inversion took: %0.2f" % (time.time() - start))
+       
+        return self.gpu_weights(path, tokenizer, text_encoder)
 
     @lru_cache(maxsize=10)
-    def gpu_weights(self, weights_path: str):
+    def gpu_weights(self, weights_path: str, tokenizer: str, text_encoder: str):
         print(f"Loading txt2img... {weights_path}")
         return StableDiffusionPipeline.from_pretrained(
             weights_path,
             torch_dtype=torch.float16,
             local_files_only=True,
+            text_encoder=text_encoder,
+            tokenizer=tokenizer,
         ).to("cuda")
 
     def upscale(self, img, upscale_rate):
@@ -224,6 +295,11 @@ class Predictor(BasePredictor):
         mask: Path = Input(
             description="Optional Mask to use for legacy inpainting", default=None
         ),
+        textual_inversion_concept: str = Input(
+            choices=CONCEPTS,
+            default="sd-concepts-library/cat-toy: <cat-toy>",
+            description="Choose a pretrained concept. The Placeholder is shown in <your-chosen-concept>.",
+        ),
         prompt: str = Input(
             description="Input prompt",
             default="photo of cjw person",
@@ -331,7 +407,7 @@ class Predictor(BasePredictor):
             print(self.weights_download_cache.cache_info())
 
         start = time.time()
-        pipe = self.get_weights(weights)
+        pipe = self.get_weights(weights, textual_inversion_concept)
         print("loading weights took: %0.2f" % (time.time() - start))
 
         start = time.time()
