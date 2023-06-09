@@ -128,8 +128,6 @@ class Predictor(BasePredictor):
         # get the id for the token and assign the embeds
         token_id = self.tokenizer.convert_tokens_to_ids(trained_token)
 
-        # bugfix try to match the size of the embeds
-        embeds.resize_(len(self.tokenizer), embeds.size(1))
         self.text_encoder.get_input_embeddings().weight.data[token_id] = embeds
 
         return self.tokenizer, self.text_encoder
