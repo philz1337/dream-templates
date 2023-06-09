@@ -82,11 +82,13 @@ class Predictor(BasePredictor):
     @lru_cache(maxsize=10)
     def gpu_weights(self, weights_path: str):
         print(f"Loading txt2img... {weights_path}")
-        return StableDiffusionPipeline.from_pretrained(
+        pipe = StableDiffusionPipeline.from_pretrained(
             weights_path,
             torch_dtype=torch.float16,
             local_files_only=True,
         ).to("cuda")
+        pipe.load_textual_inversion("ti-cache/negative_hand-neg.pt")
+        return pipe
 
     def upscale(self, img, upscale_rate):
         w, h = img.size
@@ -464,8 +466,6 @@ class Predictor(BasePredictor):
             )
 
         pipe.scheduler = make_scheduler(scheduler, pipe.scheduler.config)
-
-        pipe.load_textual_inversion("ti-cache/negative_hand-neg.pt")
 
         result_count = 0
         for idx in range(num_outputs):
