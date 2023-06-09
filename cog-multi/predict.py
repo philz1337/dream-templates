@@ -82,13 +82,11 @@ class Predictor(BasePredictor):
     @lru_cache(maxsize=10)
     def gpu_weights(self, weights_path: str):
         print(f"Loading txt2img... {weights_path}")
-        pipe = StableDiffusionPipeline.from_pretrained(
+        return StableDiffusionPipeline.from_pretrained(
             weights_path,
             torch_dtype=torch.float16,
             local_files_only=True,
         ).to("cuda")
-        pipe.load_textual_inversion("ti-cache/negative_hand-neg.pt")
-        return pipe
 
     def upscale(self, img, upscale_rate):
         w, h = img.size
@@ -352,7 +350,6 @@ class Predictor(BasePredictor):
         # FIXME(ja): we shouldn't need to do this multiple times
         # or perhaps we create the object each time?
         
-
         print("Loading compel...")
         compel = Compel(
             tokenizer=pipe.tokenizer,
