@@ -1,0 +1,4 @@
+sd-concepts-library/madhubani-art: <madhubani-art>
+sd-concepts-library/cat-toy: <cat-toy>
+sd-concepts-library/indian-watercolor-portraits: <watercolor-portrait>
+sd-concepts-library/clothes: <clothes>

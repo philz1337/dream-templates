@@ -43,3 +43,21 @@ cn_pose.save_pretrained(os.path.join(settings.MODEL_CACHE, 'openpose'))
 
 
 shutil.rmtree(TMP_CACHE)
+
+
+# Textual inversion
+from huggingface_hub import hf_hub_download
+
+with open("textual-inversion-concepts.txt") as infile:
+    CONCEPTS = [line.rstrip() for line in infile]
+
+print("Downloading pre-trained concepts...")
+for concept in CONCEPTS:
+    concept = concept.split(":")[0]
+    os.makedirs(concept, exist_ok=True)
+    embeds_path = hf_hub_download(repo_id=concept, filename="learned_embeds.bin", cache_dir=concept)
+    token_path = hf_hub_download(repo_id=concept, filename="token_identifier.txt", cache_dir=concept)
+
+    with open(token_path, 'r') as file:
+        placeholder = file.read()
+    print(f"{concept}: {placeholder}")
