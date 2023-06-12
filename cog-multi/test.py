@@ -6,7 +6,7 @@ pipe = StableDiffusionPipeline.from_pretrained(model_id, torch_dtype=torch.float
 
 pipe.load_textual_inversion("./awaitingtongue.pt")
 
-prompt = "A <cat-toy> backpack"
+prompt = "A <awaitingtongue> backpack"
 
 image = pipe(prompt, num_inference_steps=30).images[0]
 image.save("cat-backpack.png")
