@@ -87,7 +87,7 @@ class Predictor(BasePredictor):
             torch_dtype=torch.float16,
             local_files_only=True,
         ).to("cuda")
-        pipe.load_textual_inversion("/philz1337/ti-await-tongue")
+        pipe.load_textual_inversion("./awaitingtongue.pt")
         return pipe
 
     def upscale(self, img, upscale_rate):
