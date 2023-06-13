@@ -16,7 +16,6 @@ pipe.load_textual_inversion("./ti/happy512.pt", token="<em-happy>")
 pipe.load_textual_inversion("./ti/shock512.pt", token="<em-shock>")
 pipe.load_textual_inversion("./ti/smile512.pt", token="<em-smile>")
 
-
 prompt = "woman with beautiful face, close up, beauty marks, sandy skin, photo, detailed,(moody lighting), (sharp focus), "
 negative_prompt= "<ti-neghand>"
 

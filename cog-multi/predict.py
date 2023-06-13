@@ -95,7 +95,7 @@ class Predictor(BasePredictor):
         pipe.load_textual_inversion("./ti/easynegative.pt", token="<easynegative>")
         pipe.load_textual_inversion("./ti/ng_deepnegative_v1_75t.pt", token="<ng_deepnegative>")
         pipe.load_textual_inversion("./ti/pureerosface_v1.pt", token="<pureerosface>")
-        pipe.load_textual_inversion("./ti/angry512.pt", token="<em-angry>")
+        pipe.load_textual_inversion("./ti/angry512.pt", token="em-angry")
         pipe.load_textual_inversion("./ti/happy512.pt", token="<em-happy>")
         pipe.load_textual_inversion("./ti/shock512.pt", token="<em-shock>")
         pipe.load_textual_inversion("./ti/smile512.pt", token="<em-smile>")
