@@ -90,15 +90,13 @@ class Predictor(BasePredictor):
         ).to("cuda")
         
         start = time.time()
-        pipe.load_textual_inversion("./ti/negative_hand-neg.pt", token="<ti-neghand>")
+        pipe.load_textual_inversion("./ti/negative_hand-neg.pt", token="<negative-hand>")
         pipe.load_textual_inversion("./ti/badhandv4.pt", token="<badhandv4>")
         pipe.load_textual_inversion("./ti/easynegative.pt", token="<easynegative>")
-        pipe.load_textual_inversion("./ti/ng_deepnegative_v1_75t.pt", token="<ng_deepnegative>")
-        pipe.load_textual_inversion("./ti/pureerosface_v1.pt", token="<pureerosface>")
-        pipe.load_textual_inversion("./ti/angry512.pt", token="em-angry")
-        pipe.load_textual_inversion("./ti/happy512.pt", token="<em-happy>")
-        pipe.load_textual_inversion("./ti/shock512.pt", token="<em-shock>")
-        pipe.load_textual_inversion("./ti/smile512.pt", token="<em-smile>")
+        pipe.load_textual_inversion("./ti/ng_deepnegative_v1_75t.pt", token="<ng-deepnegative>")
+        pipe.load_textual_inversion("./ti/bad-picture-chill-75v.pt", token="<bad-picture-chill>")
+        
+
         print("loading textual-inversions took: %0.2f" % (time.time() - start))
 
         return pipe
