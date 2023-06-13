@@ -86,8 +86,21 @@ class Predictor(BasePredictor):
             weights_path,
             torch_dtype=torch.float16,
             local_files_only=True,
+            safety_checker = None,
         ).to("cuda")
-        pipe.load_textual_inversion("./awaitingtongue.pt", token="<ti-awaitingtongue>")
+        
+        start = time.time()
+        pipe.load_textual_inversion("./ti/negative_hand-neg.pt", token="<ti-neghand>")
+        pipe.load_textual_inversion("./ti/badhandv4.pt", token="<badhandv4>")
+        pipe.load_textual_inversion("./ti/easynegative.pt", token="<easynegative>")
+        pipe.load_textual_inversion("./ti/ng_deepnegative_v1_75t.pt", token="<ng_deepnegative>")
+        pipe.load_textual_inversion("./ti/pureerosface_v1.pt", token="<pureerosface>")
+        pipe.load_textual_inversion("./ti/angry512.pt", token="<em-angry>")
+        pipe.load_textual_inversion("./ti/happy512.pt", token="<em-happy>")
+        pipe.load_textual_inversion("./ti/shock512.pt", token="<em-shock>")
+        pipe.load_textual_inversion("./ti/smile512.pt", token="<em-smile>")
+        print("loading textual-inversions took: %0.2f" % (time.time() - start))
+
         return pipe
 
     def upscale(self, img, upscale_rate):
@@ -143,7 +156,7 @@ class Predictor(BasePredictor):
                 tokenizer=pipe.tokenizer,
                 unet=pipe.unet,
                 scheduler=pipe.scheduler,
-                safety_checker=pipe.safety_checker,
+                safety_checker=None,
                 feature_extractor=pipe.feature_extractor,
             )
 
@@ -154,7 +167,7 @@ class Predictor(BasePredictor):
                 tokenizer=pipe.tokenizer,
                 unet=pipe.unet,
                 scheduler=pipe.scheduler,
-                safety_checker=pipe.safety_checker,
+                safety_checker=None,
                 feature_extractor=pipe.feature_extractor,
                 controlnet=self.controlnet,
             )
@@ -166,7 +179,7 @@ class Predictor(BasePredictor):
                 tokenizer=pipe.tokenizer,
                 unet=pipe.unet,
                 scheduler=pipe.scheduler,
-                safety_checker=pipe.safety_checker,
+                safety_checker=None,
                 feature_extractor=pipe.feature_extractor,
                 controlnet=self.controlnet_openpose,
             )
@@ -178,7 +191,7 @@ class Predictor(BasePredictor):
                 tokenizer=pipe.tokenizer,
                 unet=pipe.unet,
                 scheduler=pipe.scheduler,
-                safety_checker=pipe.safety_checker,
+                safety_checker=None,
                 feature_extractor=pipe.feature_extractor,
                 controlnet=self.controlnet,
             )
@@ -190,7 +203,7 @@ class Predictor(BasePredictor):
                 tokenizer=pipe.tokenizer,
                 unet=pipe.unet,
                 scheduler=pipe.scheduler,
-                safety_checker=pipe.safety_checker,
+                safety_checker=None,
                 feature_extractor=pipe.feature_extractor,
                 controlnet=self.controlnet_openpose,
             )
@@ -202,7 +215,7 @@ class Predictor(BasePredictor):
                 tokenizer=pipe.tokenizer,
                 unet=pipe.unet,
                 scheduler=pipe.scheduler,
-                safety_checker=pipe.safety_checker,
+                safety_checker=None,
                 feature_extractor=pipe.feature_extractor,
             )
 
@@ -465,11 +478,6 @@ class Predictor(BasePredictor):
             )
 
         pipe.scheduler = make_scheduler(scheduler, pipe.scheduler.config)
-
-        pipe.safety_checker = None
-        if upscale_afterwards:
-            upscale_pipe.safety_checker = None
-
 
         result_count = 0
         for idx in range(num_outputs):
