@@ -331,7 +331,7 @@ class Predictor(BasePredictor):
                 "KLMS",
                 "PNDM",
                 "UniPCMultistep",
-                      "SDE-DPMSolver++",
+                "SDE-DPMSolver++",
             ],
             description="Upscaler: Choose a scheduler."
         ),
@@ -548,6 +548,8 @@ def make_scheduler(name, config, karras_sigmas=False):
 
     if name == "SDE-DPMSolver++":
         config.algorithm_type = 'sde-dpmsolver++'
+    elif name == "DPMSolverMultistep":
+        config.algorithm_type = 'dpmsolver++'
 
     scheduler_class = scheduler_classes.get(name)
     if scheduler_class:
