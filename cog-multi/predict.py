@@ -282,6 +282,7 @@ class Predictor(BasePredictor):
                 "KLMS",
                 "PNDM",
                 "UniPCMultistep",
+                "SDE-DPMSolver++",
             ],
             description="Choose a scheduler.",
         ),
@@ -330,6 +331,7 @@ class Predictor(BasePredictor):
                 "KLMS",
                 "PNDM",
                 "UniPCMultistep",
+                      "SDE-DPMSolver++",
             ],
             description="Upscaler: Choose a scheduler."
         ),
@@ -532,15 +534,23 @@ class Predictor(BasePredictor):
 
 
 def make_scheduler(name, config, karras_sigmas=False):
-    config_sde = config.algorithm_type = 'sde-dpmsolver++'
-    return {
-        "DDIM": DDIMScheduler.from_config(config, use_karras_sigmas=karras_sigmas),
-        "DPMSolverMultistep": DPMSolverMultistepScheduler.from_config(config, use_karras_sigmas=karras_sigmas),
-        "HeunDiscrete": HeunDiscreteScheduler.from_config(config, use_karras_sigmas=karras_sigmas),
-        "K_EULER_ANCESTRAL": EulerAncestralDiscreteScheduler.from_config(config, use_karras_sigmas=karras_sigmas),
-        "K_EULER": EulerDiscreteScheduler.from_config(config, use_karras_sigmas=karras_sigmas),
-        "KLMS": LMSDiscreteScheduler.from_config(config, use_karras_sigmas=karras_sigmas),
-        "PNDM": PNDMScheduler.from_config(config, use_karras_sigmas=karras_sigmas),
-        "UniPCMultistep": UniPCMultistepScheduler.from_config(config, use_karras_sigmas=karras_sigmas),
-        "SDE-DPMSolver++": DPMSolverMultistepScheduler.from_config(config_sde, use_karras_sigmas=karras_sigmas)
-    }[name]
+    scheduler_classes = {
+        "DDIM": DDIMScheduler,
+        "DPMSolverMultistep": DPMSolverMultistepScheduler,
+        "HeunDiscrete": HeunDiscreteScheduler,
+        "K_EULER_ANCESTRAL": EulerAncestralDiscreteScheduler,
+        "K_EULER": EulerDiscreteScheduler,
+        "KLMS": LMSDiscreteScheduler,
+        "PNDM": PNDMScheduler,
+        "UniPCMultistep": UniPCMultistepScheduler,
+        "SDE-DPMSolver++": DPMSolverMultistepScheduler
+    }
+
+    if name == "SDE-DPMSolver++":
+        config.algorithm_type = 'sde-dpmsolver++'
+
+    scheduler_class = scheduler_classes.get(name)
+    if scheduler_class:
+        return scheduler_class.from_config(config, use_karras_sigmas=karras_sigmas)
+    else:
+        raise ValueError("Invalide Scheduler-Name: {}".format(name))
