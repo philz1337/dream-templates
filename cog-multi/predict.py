@@ -23,7 +23,7 @@ from diffusers import (
     StableDiffusionControlNetPipeline,
     StableDiffusionImg2ImgPipeline,
     StableDiffusionInpaintPipelineLegacy,
-    StableDiffusionPipeline,
+    StableDiffusionKDiffusionPipeline,
     UniPCMultistepScheduler,
 )
 from diffusers.utils import load_image
@@ -82,7 +82,7 @@ class Predictor(BasePredictor):
     @lru_cache(maxsize=10)
     def gpu_weights(self, weights_path: str):
         print(f"Loading txt2img... {weights_path}")
-        pipe = StableDiffusionPipeline.from_pretrained(
+        pipe = StableDiffusionKDiffusionPipeline.from_pretrained(
             weights_path,
             torch_dtype=torch.float16,
             local_files_only=True,
@@ -484,6 +484,7 @@ class Predictor(BasePredictor):
             )
 
         pipe.scheduler = make_scheduler(scheduler, pipe.scheduler.config, karras_sigmas)
+        pipe.set_scheduler('sample_dpmpp_2m')
 
         result_count = 0
         for idx in range(num_outputs):
@@ -493,6 +494,7 @@ class Predictor(BasePredictor):
                 guidance_scale=guidance_scale,
                 generator=generator,
                 num_inference_steps=num_inference_steps,
+                use_karras_sigmas=True
                 **extra_kwargs,
             )
             
