@@ -545,7 +545,7 @@ def make_scheduler(name, config):
 
     #default False
     karras_sigmas = False
-    
+
     if name == "DPM++ SDE Karras":
         config.algorithm_type = 'sde-dpmsolver++'
         karras_sigmas = True
@@ -554,6 +554,7 @@ def make_scheduler(name, config):
 
     scheduler_class = scheduler_classes.get(name)
     if scheduler_class:
-        return scheduler_class.from_config(config, use_karras_sigmas=karras_sigmas)
+        scheduler = scheduler_class.from_config(config, use_karras_sigmas=karras_sigmas)
+        return scheduler
     else:
-        raise ValueError("Invalide Scheduler-Name: {}".format(name))
+        raise ValueError("Invalid Scheduler Name: {}".format(name))
