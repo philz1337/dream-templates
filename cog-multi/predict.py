@@ -554,6 +554,7 @@ def make_scheduler(name, config):
 
     scheduler_class = scheduler_classes.get(name)
     if scheduler_class:
+        print("Using Scheduler: {}".format(name), " with karras_sigmas: ", karras_sigmas)
         scheduler = scheduler_class.from_config(config, use_karras_sigmas=karras_sigmas)
         return scheduler
     else:
