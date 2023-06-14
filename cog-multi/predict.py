@@ -478,7 +478,7 @@ class Predictor(BasePredictor):
                 "Maximum size is 1024x768 or 768x1024 pixels, because of memory limits. Please select a lower width or height."
             )
 
-        pipe.scheduler = make_scheduler(scheduler, pipe.scheduler.config)
+        pipe.scheduler = make_scheduler(scheduler, pipe.scheduler.config, karras_sigmas)
 
         result_count = 0
         for idx in range(num_outputs):
@@ -488,7 +488,6 @@ class Predictor(BasePredictor):
                 guidance_scale=guidance_scale,
                 generator=generator,
                 num_inference_steps=num_inference_steps,
-                use_karras_sigmas=karras_sigmas,
                 **extra_kwargs,
             )
             
@@ -532,14 +531,14 @@ class Predictor(BasePredictor):
             )
 
 
-def make_scheduler(name, config):
+def make_scheduler(name, config, karras_sigmas=False):
     return {
-        "DDIM": DDIMScheduler.from_config(config),
-        "DPMSolverMultistep": DPMSolverMultistepScheduler.from_config(config),
-        "HeunDiscrete": HeunDiscreteScheduler.from_config(config),
-        "K_EULER_ANCESTRAL": EulerAncestralDiscreteScheduler.from_config(config),
-        "K_EULER": EulerDiscreteScheduler.from_config(config),
-        "KLMS": LMSDiscreteScheduler.from_config(config),
-        "PNDM": PNDMScheduler.from_config(config),
-        "UniPCMultistep": UniPCMultistepScheduler.from_config(config),
+        "DDIM": DDIMScheduler.from_config(config, use_karras_sigmas=karras_sigmas),
+        "DPMSolverMultistep": DPMSolverMultistepScheduler.from_config(config, use_karras_sigmas=karras_sigmas),
+        "HeunDiscrete": HeunDiscreteScheduler.from_config(config, use_karras_sigmas=karras_sigmas),
+        "K_EULER_ANCESTRAL": EulerAncestralDiscreteScheduler.from_config(config, use_karras_sigmas=karras_sigmas),
+        "K_EULER": EulerDiscreteScheduler.from_config(config, use_karras_sigmas=karras_sigmas),
+        "KLMS": LMSDiscreteScheduler.from_config(config, use_karras_sigmas=karras_sigmas),
+        "PNDM": PNDMScheduler.from_config(config, use_karras_sigmas=karras_sigmas),
+        "UniPCMultistep": UniPCMultistepScheduler.from_config(config, use_karras_sigmas=karras_sigmas),
     }[name]
