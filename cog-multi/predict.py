@@ -282,15 +282,9 @@ class Predictor(BasePredictor):
                 "KLMS",
                 "PNDM",
                 "UniPCMultistep",
-                "DPMSolver++ SDE",
+                "DPM++ SDE Karras",
             ],
             description="Choose a scheduler.",
-        ),
-        karras_sigmas: bool = Input(
-            description="Use Karras sigmas for noise schedule", default=False
-        ),
-        yes_or_no: bool = Input(
-            description="testing only", default=False
         ),
         disable_safety_check: bool = Input(
             description="Disable safety check. Use at your own risk!", default=False
@@ -334,13 +328,10 @@ class Predictor(BasePredictor):
                 "KLMS",
                 "PNDM",
                 "UniPCMultistep",
-                "DPMSolver++ SDE",
+                "DPM++ SDE Karras",
             ],
             description="Upscaler: Choose a scheduler."
-        ),
-        upscale_karras_sigmas: bool = Input(
-            description="Use Karras sigmas for noise schedule", default=False
-        ),
+        )
     ) -> Iterator[Path]:
         """Run a single prediction on the model"""
 
@@ -486,11 +477,8 @@ class Predictor(BasePredictor):
                 "Maximum size is 1024x768 or 768x1024 pixels, because of memory limits. Please select a lower width or height."
             )
 
-        pipe.scheduler = make_scheduler(scheduler, pipe.scheduler.config, karras_sigmas)
+        pipe.scheduler = make_scheduler(scheduler, pipe.scheduler.config)
 
-        if yes_or_no:
-            pipe.set_scheduler('sample_dpmpp_2m')
-            
         result_count = 0
         for idx in range(num_outputs):
             this_seed = seed + idx
@@ -519,7 +507,7 @@ class Predictor(BasePredictor):
                     "negative_prompt_embeds":negative_prompt_embeds
                 }
 
-                upscale_pipe.scheduler = make_scheduler(upscale_scheduler, pipe.scheduler.config, upscale_karras_sigmas)
+                upscale_pipe.scheduler = make_scheduler(upscale_scheduler, pipe.scheduler.config)
                 
                 output = upscale_pipe(
                     guidance_scale=upscale_guidance_scale,
@@ -542,7 +530,7 @@ class Predictor(BasePredictor):
             )
 
 
-def make_scheduler(name, config, karras_sigmas=False):
+def make_scheduler(name, config):
     scheduler_classes = {
         "DDIM": DDIMScheduler,
         "DPMSolverMultistep": DPMSolverMultistepScheduler,
@@ -552,11 +540,15 @@ def make_scheduler(name, config, karras_sigmas=False):
         "KLMS": LMSDiscreteScheduler,
         "PNDM": PNDMScheduler,
         "UniPCMultistep": UniPCMultistepScheduler,
-        "DPMSolver++ SDE": DPMSolverMultistepScheduler
+        "DPM++ SDE Karras": DPMSolverMultistepScheduler
     }
 
-    if name == "DPMSolver++ SDE":
+    #default False
+    karras_sigmas = False
+    
+    if name == "DPM++ SDE Karras":
         config.algorithm_type = 'sde-dpmsolver++'
+        karras_sigmas = True
     elif name == "DPMSolverMultistep":
         config.algorithm_type = 'dpmsolver++'
 
