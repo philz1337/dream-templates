@@ -532,6 +532,7 @@ class Predictor(BasePredictor):
 
 
 def make_scheduler(name, config, karras_sigmas=False):
+    config_sde = config.algorithm_type = 'sde-dpmsolver++'
     return {
         "DDIM": DDIMScheduler.from_config(config, use_karras_sigmas=karras_sigmas),
         "DPMSolverMultistep": DPMSolverMultistepScheduler.from_config(config, use_karras_sigmas=karras_sigmas),
@@ -541,4 +542,5 @@ def make_scheduler(name, config, karras_sigmas=False):
         "KLMS": LMSDiscreteScheduler.from_config(config, use_karras_sigmas=karras_sigmas),
         "PNDM": PNDMScheduler.from_config(config, use_karras_sigmas=karras_sigmas),
         "UniPCMultistep": UniPCMultistepScheduler.from_config(config, use_karras_sigmas=karras_sigmas),
+        "SDE-DPMSolver++": DPMSolverMultistepScheduler.from_config(config_sde, use_karras_sigmas=karras_sigmas)
     }[name]
