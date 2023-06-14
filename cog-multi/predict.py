@@ -282,7 +282,7 @@ class Predictor(BasePredictor):
                 "KLMS",
                 "PNDM",
                 "UniPCMultistep",
-                "SDE-DPMSolver++",
+                "DPMSolver++ SDE",
             ],
             description="Choose a scheduler.",
         ),
@@ -331,9 +331,12 @@ class Predictor(BasePredictor):
                 "KLMS",
                 "PNDM",
                 "UniPCMultistep",
-                "SDE-DPMSolver++",
+                "DPMSolver++ SDE",
             ],
             description="Upscaler: Choose a scheduler."
+        ),
+        upscale_karras_sigmas: bool = Input(
+            description="Use Karras sigmas for noise schedule", default=False
         ),
     ) -> Iterator[Path]:
         """Run a single prediction on the model"""
@@ -510,7 +513,7 @@ class Predictor(BasePredictor):
                     "negative_prompt_embeds":negative_prompt_embeds
                 }
 
-                upscale_pipe.scheduler = make_scheduler(upscale_scheduler, pipe.scheduler.config)
+                upscale_pipe.scheduler = make_scheduler(upscale_scheduler, pipe.scheduler.config, upscale_karras_sigmas)
 
                 output = upscale_pipe(
                     guidance_scale=upscale_guidance_scale,
@@ -543,10 +546,10 @@ def make_scheduler(name, config, karras_sigmas=False):
         "KLMS": LMSDiscreteScheduler,
         "PNDM": PNDMScheduler,
         "UniPCMultistep": UniPCMultistepScheduler,
-        "SDE-DPMSolver++": DPMSolverMultistepScheduler
+        "DPMSolver++ SDE": DPMSolverMultistepScheduler
     }
 
-    if name == "SDE-DPMSolver++":
+    if name == "DPMSolver++ SDE":
         config.algorithm_type = 'sde-dpmsolver++'
     elif name == "DPMSolverMultistep":
         config.algorithm_type = 'dpmsolver++'
