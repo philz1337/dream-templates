@@ -65,6 +65,14 @@ class Predictor(BasePredictor):
             local_files_only=True,
         ).to("cuda")
 
+        print("Loading controlnet tiles...")
+        self.controlnet_tiles = ControlNetModel.from_pretrained(
+            os.path.join(settings.MODEL_CACHE, "tiles"),
+            torch_dtype=torch.float16,
+            local_files_only=True,
+        ).to("cuda")
+
+
         self.weights_download_cache = WeightsDownloadCache()
 
     def get_weights(self, weights: str):
@@ -106,6 +114,17 @@ class Predictor(BasePredictor):
         new_w, new_h = int(w * upscale_rate), int(h * upscale_rate)
         return img.resize((new_w, new_h), Image.BICUBIC)
     
+    def resize_for_condition_image(self, input_image: Image, resolution: int):
+        input_image = input_image.convert("RGB")
+        W, H = input_image.size
+        k = float(resolution) / min(H, W)
+        H *= k
+        W *= k
+        H = int(round(H / 64.0)) * 64
+        W = int(round(W / 64.0)) * 64
+        img = input_image.resize((W, H), resample=Image.LANCZOS)
+        return img
+
     def load_image(self, image_path: Path, upscale_rate: float = 1.0):
         if image_path is None:
             return None
@@ -204,6 +223,18 @@ class Predictor(BasePredictor):
                 safety_checker=None,
                 feature_extractor=pipe.feature_extractor,
                 controlnet=self.controlnet_openpose,
+            )
+        
+        if kind == "cnet_img2img_tiles":
+            return StableDiffusionControlNetImg2ImgPipeline(
+                vae=pipe.vae,
+                text_encoder=pipe.text_encoder,
+                tokenizer=pipe.tokenizer,
+                unet=pipe.unet,
+                scheduler=pipe.scheduler,
+                safety_checker=None,
+                feature_extractor=pipe.feature_extractor,
+                controlnet=self.controlnet_tiles,
             )
 
         if kind == "inpaint":
@@ -304,6 +335,14 @@ class Predictor(BasePredictor):
         upscale_afterwards_rate: float = Input(
             description="Rate for Upscaling. 1.0 corresponds to original image size", ge=1, le=20, default=1
         ),
+        upscale_afterwards_method: str = Input(
+            default="img2img",
+            choices=[
+                "img2img",
+                "tiles",
+            ],
+            description="Upscaler: Choose a scheduler."
+        ),
         output_raw: bool = Input(
             description="Output the raw result when upscaling afterwards", default=False
         ),
@@ -331,7 +370,10 @@ class Predictor(BasePredictor):
                 "DPM++ SDE Karras",
             ],
             description="Upscaler: Choose a scheduler."
-        )
+        ),
+        upscale_tile_strength: float = Input(
+            description="Upscaler: Strength of tile guidance", ge=0, le=1, default=1.0
+        ),
     ) -> Iterator[Path]:
         """Run a single prediction on the model"""
 
@@ -463,8 +505,12 @@ class Predictor(BasePredictor):
             }
 
         if upscale_afterwards: 
-            print("Using upscale pipeline")
-            upscale_pipe = self.get_pipeline(pipe, "img2img")
+            if upscale_afterwards_method == "img2img":
+                print("Using upscale pipeline")
+                upscale_pipe = self.get_pipeline(pipe, "img2img")
+            elif upscale_afterwards_method == "tiles":
+                print("Using upscale tiles pipeline")
+                upscale_pipe = self.get_pipeline(pipe, "tiles")
             
         print("loading pipeline took: %0.2f" % (time.time() - start))
 
@@ -498,23 +544,40 @@ class Predictor(BasePredictor):
                     img.save(output_path)
                     yield Path(output_path)
 
-                img = self.upscale(img, upscale_afterwards_rate)
-                
-                upscale_kwargs = {
-                    "image": img,
-                    "strength": upscale_prompt_strength,
-                    "prompt_embeds": prompt_embeds,
-                    "negative_prompt_embeds":negative_prompt_embeds
-                }
+                if upscale_afterwards_method == "img2img":
+                    img = self.upscale(img, upscale_afterwards_rate)
+                    
+                    upscale_kwargs = {
+                        "image": img,
+                        "strength": upscale_prompt_strength,
+                        "prompt_embeds": prompt_embeds,
+                        "negative_prompt_embeds":negative_prompt_embeds
+                    }
 
-                upscale_pipe.scheduler = make_scheduler(upscale_scheduler, pipe.scheduler.config)
-                
-                output = upscale_pipe(
-                    guidance_scale=upscale_guidance_scale,
-                    generator=generator,
-                    num_inference_steps=upscale_num_inference_steps,
-                    **upscale_kwargs,                
-                )
+                    upscale_pipe.scheduler = make_scheduler(upscale_scheduler, pipe.scheduler.config)
+                    
+                    output = upscale_pipe(
+                        guidance_scale=upscale_guidance_scale,
+                        generator=generator,
+                        num_inference_steps=upscale_num_inference_steps,
+                        **upscale_kwargs,                
+                    )
+
+                elif upscale_afterwards_method == "tiles":
+                    width_new_image = img.size[0]*upscale_afterwards_rate
+                    condition_image = self.resize_for_condition_image(img, width_new_image)
+                    output = upscale_pipe(                    
+                        image=condition_image, 
+                        controlnet_conditioning_image=condition_image, 
+                        width=condition_image.size[0],
+                        height=condition_image.size[1],
+                        strength=upscale_tile_strength,
+                        generator=generator,
+                        num_inference_steps=upscale_num_inference_steps,
+                        **upscale_kwargs,     
+                        )
+                    
+
 
             if output.nsfw_content_detected and output.nsfw_content_detected[0]:
                 continue

@@ -41,5 +41,12 @@ cn_pose = ControlNetModel.from_pretrained(
 cn_pose.half()
 cn_pose.save_pretrained(os.path.join(settings.MODEL_CACHE, 'openpose'))
 
+cn_tiles = ControlNetModel.from_pretrained(
+    settings.CONTROLNET_MODEL_TILES,
+    torch_dtype=torch.float16,
+    cache_dir=TMP_CACHE,
+)
+cn_tiles.half()
+cn_tiles.save_pretrained(os.path.join(settings.MODEL_CACHE, 'tiles'))
 
 shutil.rmtree(TMP_CACHE)

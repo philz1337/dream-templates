@@ -3,4 +3,4 @@ SAFETY_MODEL_ID = "CompVis/stable-diffusion-safety-checker"
 CONTROLNET_MODEL = "lllyasviel/sd-controlnet-depth"
 BASE_MODEL_PATH = "./weights"
 CONTROLNET_MODEL_OPENPOSE = "lllyasviel/sd-controlnet-openpose"
-
+CONTROLNET_MODEL_TILES = "lllyasviel/control_v11f1e_sd15_tile"
