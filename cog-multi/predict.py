@@ -371,9 +371,6 @@ class Predictor(BasePredictor):
             ],
             description="Upscaler: Choose a scheduler."
         ),
-        upscale_tile_strength: float = Input(
-            description="Upscaler: Strength of tile guidance", ge=0, le=1, default=1.0
-        ),
     ) -> Iterator[Path]:
         """Run a single prediction on the model"""
 
@@ -570,7 +567,6 @@ class Predictor(BasePredictor):
                         controlnet_conditioning_image=condition_image, 
                         width=condition_image.size[0],
                         height=condition_image.size[1],
-                        strength=upscale_tile_strength,
                         generator=generator,
                         num_inference_steps=upscale_num_inference_steps,
                         **upscale_kwargs,     
