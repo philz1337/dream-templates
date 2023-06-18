@@ -574,20 +574,7 @@ class Predictor(BasePredictor):
                         num_inference_steps=upscale_num_inference_steps,
                         **upscale_kwargs,     
                         )
-                    if upscale_afterwards_twice:
-                        width_new_image = output.images[0].size[0]*upscale_afterwards_rate
-                        condition_image = self.resize_for_condition_image(output.images[0], width_new_image)
-                        output = upscale_pipe(                    
-                            image=condition_image, 
-                            controlnet_conditioning_image=condition_image, 
-                            width=condition_image.size[0],
-                            height=condition_image.size[1],
-                            generator=generator,
-                            num_inference_steps=upscale_num_inference_steps,
-                            **upscale_kwargs,     
-                            )
                     
-
 
             if output.nsfw_content_detected and output.nsfw_content_detected[0]:
                 continue
