@@ -578,10 +578,10 @@ class Predictor(BasePredictor):
                         width_new_image = output.images[0].size[0]*upscale_afterwards_rate
                         condition_image = self.resize_for_condition_image(output.images[0], width_new_image)
                         output = upscale_pipe(                    
-                            image=output.images[0], 
-                            controlnet_conditioning_image=output.images[0], 
-                            width=output.images[0].size[0],
-                            height=output.images[0].size[1],
+                            image=condition_image, 
+                            controlnet_conditioning_image=condition_image, 
+                            width=condition_image.size[0],
+                            height=condition_image.size[1],
                             generator=generator,
                             num_inference_steps=upscale_num_inference_steps,
                             **upscale_kwargs,     
