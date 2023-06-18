@@ -332,6 +332,9 @@ class Predictor(BasePredictor):
         upscale_afterwards: bool = Input(
             description="upscale image after image generation", default=False
         ),
+        upscale_afterwards_twice: bool = Input(
+            description="upscale image after image generation twice, only works with tiles", default=False
+        ),
         upscale_afterwards_rate: float = Input(
             description="Rate for Upscaling. 1.0 corresponds to original image size", ge=1, le=20, default=1
         ),
@@ -571,6 +574,16 @@ class Predictor(BasePredictor):
                         num_inference_steps=upscale_num_inference_steps,
                         **upscale_kwargs,     
                         )
+                    if upscale_afterwards_twice:
+                        output = upscale_pipe(                    
+                            image=output.images[0], 
+                            controlnet_conditioning_image=output.images[0], 
+                            width=output.images[0].size[0],
+                            height=output.images[0].size[1],
+                            generator=generator,
+                            num_inference_steps=upscale_num_inference_steps,
+                            **upscale_kwargs,     
+                            )
                     
 
 
