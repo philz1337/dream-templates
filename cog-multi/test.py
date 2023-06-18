@@ -15,8 +15,7 @@ def resize_for_condition_image(input_image: Image, resolution: int):
     img = input_image.resize((W, H), resample=Image.LANCZOS if k > 1 else Image.AREA)
     return img
 
-controlnet = ControlNetModel.from_pretrained('takuma104/control_v11', 
-                                             subfolder='control_v11f1e_sd15_tile',
+controlnet = ControlNetModel.from_pretrained('philz1337/tiles',
                                              torch_dtype=torch.float16)
 pipe = DiffusionPipeline.from_pretrained(
     "runwayml/stable-diffusion-v1-5",
