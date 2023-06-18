@@ -539,6 +539,13 @@ class Predictor(BasePredictor):
             if upscale_afterwards:
                 img = output.images[0]
 
+                upscale_kwargs = {
+                        "image": img,
+                        "strength": upscale_prompt_strength,
+                        "prompt_embeds": prompt_embeds,
+                        "negative_prompt_embeds":negative_prompt_embeds
+                    }
+                
                 if output_raw:
                     output_path = Path(f"/tmp/seed-{this_seed}-raw.png")
                     img.save(output_path)
@@ -546,14 +553,6 @@ class Predictor(BasePredictor):
 
                 if upscale_afterwards_method == "img2img":
                     img = self.upscale(img, upscale_afterwards_rate)
-                    
-                    upscale_kwargs = {
-                        "image": img,
-                        "strength": upscale_prompt_strength,
-                        "prompt_embeds": prompt_embeds,
-                        "negative_prompt_embeds":negative_prompt_embeds
-                    }
-
                     upscale_pipe.scheduler = make_scheduler(upscale_scheduler, pipe.scheduler.config)
                     
                     output = upscale_pipe(
