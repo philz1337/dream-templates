@@ -507,7 +507,7 @@ class Predictor(BasePredictor):
                 upscale_pipe = self.get_pipeline(pipe, "img2img")
             elif upscale_afterwards_method == "tiles":
                 print("Using upscale tiles pipeline")
-                upscale_pipe = self.get_pipeline(pipe, "tiles")
+                upscale_pipe = self.get_pipeline(pipe, "cnet_img2img_tiles")
             
         print("loading pipeline took: %0.2f" % (time.time() - start))
 
