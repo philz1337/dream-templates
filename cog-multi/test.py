@@ -23,7 +23,7 @@ pipe = DiffusionPipeline.from_pretrained("runwayml/stable-diffusion-v1-5",
                                          torch_dtype=torch.float16).to('cuda')
 pipe.enable_xformers_memory_efficient_attention()
 
-source_image = load_image('https://huggingface.co/lllyasviel/control_v11f1e_sd15_tile/resolve/main/images/original.png')
+source_image = load_image('https://r2.photoai.com/1686405994-2cdf12b0b418fea6707493a8f014c120-1-pre.png')
 
 condition_image = resize_for_condition_image(source_image, 1024)
 image = pipe(prompt="best quality", 
