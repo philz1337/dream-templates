@@ -540,7 +540,6 @@ class Predictor(BasePredictor):
                 img = output.images[0]
 
                 upscale_kwargs = {
-                        "image": img,
                         "strength": upscale_prompt_strength,
                         "prompt_embeds": prompt_embeds,
                         "negative_prompt_embeds":negative_prompt_embeds
@@ -556,6 +555,7 @@ class Predictor(BasePredictor):
                     upscale_pipe.scheduler = make_scheduler(upscale_scheduler, pipe.scheduler.config)
                     
                     output = upscale_pipe(
+                        image=img,
                         guidance_scale=upscale_guidance_scale,
                         generator=generator,
                         num_inference_steps=upscale_num_inference_steps,
