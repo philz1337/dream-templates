@@ -575,6 +575,8 @@ class Predictor(BasePredictor):
                         **upscale_kwargs,     
                         )
                     if upscale_afterwards_twice:
+                        width_new_image = output.images[0].size[0]*upscale_afterwards_rate
+                        condition_image = self.resize_for_condition_image(output.images[0], width_new_image)
                         output = upscale_pipe(                    
                             image=output.images[0], 
                             controlnet_conditioning_image=output.images[0], 
