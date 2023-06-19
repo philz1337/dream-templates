@@ -103,8 +103,8 @@ class Predictor(BasePredictor):
         pipe.load_textual_inversion("./ti/easynegative.pt", token="<easynegative>")
         pipe.load_textual_inversion("./ti/ng_deepnegative_v1_75t.pt", token="<ng-deepnegative>")
         pipe.load_textual_inversion("./ti/bad-picture-chill-75v.pt", token="<bad-picture-chill>")
+        pipe.load_textual_inversion("./ti/CyberRealistic_Negative-neg.pt.pt", token="<cyberrealistic-neg>")
         
-
         print("loading textual-inversions took: %0.2f" % (time.time() - start))
 
         return pipe
