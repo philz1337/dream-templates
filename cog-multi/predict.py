@@ -74,6 +74,7 @@ class Predictor(BasePredictor):
         ).to("cuda")
 
 
+
         self.weights_download_cache = WeightsDownloadCache()
 
     def get_weights(self, weights: str):
@@ -163,7 +164,7 @@ class Predictor(BasePredictor):
 
         return self.openpose(control_image_openpose)
 
-    def get_pipeline(self, pipe, kind):
+    def get_pipeline(self, pipe, kind, weights):
         if kind == "txt2img":
             return pipe
 
@@ -250,11 +251,7 @@ class Predictor(BasePredictor):
             )
         if kind == "reference":
             return DiffusionPipeline.from_pretrained(
-                vae=pipe.vae,
-                text_encoder=pipe.text_encoder,
-                tokenizer=pipe.tokenizer,
-                unet=pipe.unet,
-                scheduler=pipe.scheduler,
+                weights,
                 safety_checker=None,
                 feature_extractor=pipe.feature_extractor,
                 custom_pipeline="stable_diffusion_reference",
@@ -518,7 +515,7 @@ class Predictor(BasePredictor):
             }
         elif reference_image:
             print("Using reference pipeline")
-            pipe = self.get_pipeline(pipe, "reference")
+            pipe = self.get_pipeline(pipe, "reference", weights)
             extra_kwargs = {
                 "ref_image": reference_image,
                 "reference_attn": reference_attn,
