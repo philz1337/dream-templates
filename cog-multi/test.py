@@ -1,11 +1,12 @@
 import torch
-from diffusers import UniPCMultistepScheduler
+from diffusers import (UniPCMultistepScheduler, DiffusionPipeline)
 from diffusers.utils import load_image
 
 input_image = load_image("https://hf.co/datasets/huggingface/documentation-images/resolve/main/diffusers/input_image_vermeer.png")
 
-pipe = StableDiffusionReferencePipeline.from_pretrained(
+pipe = DiffusionPipeline.from_pretrained(
        "runwayml/stable-diffusion-v1-5",
+       custom_pipeline="filename_in_the_community_folder",
        safety_checker=None,
        torch_dtype=torch.float16
        ).to('cuda:0')
