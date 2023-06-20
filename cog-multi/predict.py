@@ -521,7 +521,7 @@ class Predictor(BasePredictor):
             print("Using reference pipeline")
             pipe = pipe_reference
             extra_kwargs = {
-                "ref_image": reference_image,
+                "ref_image": image,
                 "reference_attn": reference_attn,
                 "reference_adain": reference_adain,
                 "width": width,
