@@ -249,7 +249,7 @@ class Predictor(BasePredictor):
                 feature_extractor=pipe.feature_extractor,
             )
         if kind == "reference":
-            return DiffusionPipeline(
+            return DiffusionPipeline.from_pretrained(
                 vae=pipe.vae,
                 text_encoder=pipe.text_encoder,
                 tokenizer=pipe.tokenizer,
