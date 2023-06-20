@@ -25,6 +25,7 @@ from diffusers import (
     StableDiffusionInpaintPipelineLegacy,
     StableDiffusionPipeline,
     UniPCMultistepScheduler,
+    StableDiffusionReferencePipeline,
 )
 from diffusers.utils import load_image
 
@@ -247,6 +248,16 @@ class Predictor(BasePredictor):
                 safety_checker=None,
                 feature_extractor=pipe.feature_extractor,
             )
+        if kind == "reference":
+            return StableDiffusionReferencePipeline(
+                vae=pipe.vae,
+                text_encoder=pipe.text_encoder,
+                tokenizer=pipe.tokenizer,
+                unet=pipe.unet,
+                scheduler=pipe.scheduler,
+                safety_checker=None,
+                feature_extractor=pipe.feature_extractor,
+            )
 
     @torch.inference_mode()
     def predict(
@@ -374,6 +385,16 @@ class Predictor(BasePredictor):
             ],
             description="Upscaler: Choose a scheduler."
         ),
+        reference_image: Path = Input(
+            description="Optional Image to use for reference", default=None
+        ),
+        reference_attn: bool = Input(
+            description="Use attention for reference image", default=False
+        ),
+        reference_adain: bool = Input(
+            description="Use adain for reference image", default=False
+        ),
+
     ) -> Iterator[Path]:
         """Run a single prediction on the model"""
 
@@ -494,6 +515,19 @@ class Predictor(BasePredictor):
                 "prompt_embeds": prompt_embeds,
                 "negative_prompt_embeds":negative_prompt_embeds
             }
+        elif reference_image:
+            print("Using reference pipeline")
+            pipe = self.get_pipeline(pipe, "reference")
+            extra_kwargs = {
+                "ref_image": reference_image,
+                "reference_attn": reference_attn,
+                "reference_adain": reference_adain,
+                "width": width,
+                "height": height,
+                "prompt_embeds": prompt_embeds,
+                "negative_prompt_embeds":negative_prompt_embeds
+            }
+
         else:
             print("Using txt2img pipeline")
             pipe = self.get_pipeline(pipe, "txt2img")
