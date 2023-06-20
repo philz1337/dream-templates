@@ -1,6 +1,7 @@
 from diffusers import DiffusionPipeline
 import torch
 from diffusers.utils import load_image
+from diffusers import UniPCMultistepScheduler
 
 guided_pipeline = DiffusionPipeline.from_pretrained(
     "runwayml/stable-diffusion-v1-5",
@@ -10,6 +11,9 @@ guided_pipeline = DiffusionPipeline.from_pretrained(
 )
 guided_pipeline.enable_attention_slicing()
 guided_pipeline = guided_pipeline.to("cuda")
+
+guided_pipeline.scheduler = UniPCMultistepScheduler.from_config(guided_pipeline.scheduler.config)
+
 
 input_image = load_image("https://hf.co/datasets/huggingface/documentation-images/resolve/main/diffusers/input_image_vermeer.png")
 
