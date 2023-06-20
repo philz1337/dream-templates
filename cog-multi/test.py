@@ -19,3 +19,5 @@ result_img = guided_pipeline(ref_image=input_image,
       num_inference_steps=20,
       reference_attn=True,
       reference_adain=True).images[0]
+
+result_img.save("result.png")
