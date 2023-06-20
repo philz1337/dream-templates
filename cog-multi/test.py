@@ -3,16 +3,9 @@ from transformers import CLIPImageProcessor, CLIPModel
 import torch
 
 
-feature_extractor = CLIPImageProcessor.from_pretrained("laion/CLIP-ViT-B-32-laion2B-s34B-b79K")
-clip_model = CLIPModel.from_pretrained("laion/CLIP-ViT-B-32-laion2B-s34B-b79K", torch_dtype=torch.float16)
-
-
 guided_pipeline = DiffusionPipeline.from_pretrained(
     "runwayml/stable-diffusion-v1-5",
-    custom_pipeline="clip_guided_stable_diffusion",
-    clip_model=clip_model,
-    feature_extractor=feature_extractor,
-    
+    custom_pipeline="stable_diffusion_reference",
     torch_dtype=torch.float16,
 )
 guided_pipeline.enable_attention_slicing()
