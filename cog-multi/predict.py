@@ -175,7 +175,7 @@ class Predictor(BasePredictor):
 
         return self.openpose(control_image_openpose)
 
-    def get_pipeline(self, pipe, kind, weights):
+    def get_pipeline(self, pipe, kind):
         if kind == "txt2img":
             return pipe
 
