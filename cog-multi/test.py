@@ -1,40 +1,19 @@
-
 import torch
-from PIL import Image
-from diffusers import ControlNetModel, DiffusionPipeline
+from diffusers import UniPCMultistepScheduler
 from diffusers.utils import load_image
 
-def resize_for_condition_image(input_image: Image, resolution: int):
-    input_image = input_image.convert("RGB")
-    W, H = input_image.size
-    k = float(resolution) / min(H, W)
-    H *= k
-    W *= k
-    H = int(round(H / 64.0)) * 64
-    W = int(round(W / 64.0)) * 64
-    img = input_image.resize((W, H), resample=Image.LANCZOS)
-    return img
+input_image = load_image("https://hf.co/datasets/huggingface/documentation-images/resolve/main/diffusers/input_image_vermeer.png")
 
-controlnet = ControlNetModel.from_pretrained('lllyasviel/control_v11f1e_sd15_tile', 
-                                             torch_dtype=torch.float16)
-pipe = DiffusionPipeline.from_pretrained("runwayml/stable-diffusion-v1-5",
-                                         custom_pipeline="stable_diffusion_controlnet_img2img",
-                                         controlnet=controlnet,
-                                         torch_dtype=torch.float16).to('cuda')
-pipe.enable_xformers_memory_efficient_attention()
+pipe = StableDiffusionReferencePipeline.from_pretrained(
+       "runwayml/stable-diffusion-v1-5",
+       safety_checker=None,
+       torch_dtype=torch.float16
+       ).to('cuda:0')
 
-source_image = load_image('https://r2.photoai.com/1686405994-2cdf12b0b418fea6707493a8f014c120-1-pre.png')
+pipe.scheduler = UniPCMultistepScheduler.from_config(pipe.scheduler.config)
 
-condition_image = resize_for_condition_image(source_image, 1024)
-image = pipe(prompt="best quality", 
-             negative_prompt="blur, lowres, bad anatomy, bad hands, cropped, worst quality", 
-             image=condition_image, 
-             controlnet_conditioning_image=condition_image, 
-             width=condition_image.size[0],
-             height=condition_image.size[1],
-             strength=1.0,
-             generator=torch.manual_seed(0),
-             num_inference_steps=32,
-            ).images[0]
-
-image.save('output.png')
+result_img = pipe(ref_image=input_image,
+      prompt="1girl",
+      num_inference_steps=20,
+      reference_attn=True,
+      reference_adain=True).images[0]
