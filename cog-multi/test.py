@@ -6,7 +6,7 @@ input_image = load_image("https://hf.co/datasets/huggingface/documentation-image
 
 pipe = DiffusionPipeline.from_pretrained(
        "runwayml/stable-diffusion-v1-5",
-       custom_pipeline="filename_in_the_community_folder",
+       custom_pipeline="stable_diffusion_reference.py",
        safety_checker=None,
        torch_dtype=torch.float16
        ).to('cuda:0')
