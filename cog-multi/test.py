@@ -15,7 +15,7 @@ guided_pipeline = guided_pipeline.to("cuda")
 guided_pipeline.scheduler = UniPCMultistepScheduler.from_config(guided_pipeline.scheduler.config)
 
 
-input_image = load_image("https://hf.co/datasets/huggingface/documentation-images/resolve/main/diffusers/input_image_vermeer.png")
+input_image = load_image("https://janaprokhorenko.de/wp-content/uploads/2022/11/Christos-810x1024.jpg")
 
 
 result_img = guided_pipeline(ref_image=input_image,
