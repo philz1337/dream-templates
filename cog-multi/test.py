@@ -20,6 +20,8 @@ input_image = load_image("https://janaprokhorenko.de/wp-content/uploads/2022/11/
 
 result_img = guided_pipeline(ref_image=input_image,
       prompt="oilpainting of beautiful girl",
+      width=512,
+      height=768,
       num_inference_steps=20,
       reference_attn=True,
       reference_adain=True).images[0]
