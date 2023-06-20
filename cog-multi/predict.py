@@ -87,7 +87,8 @@ class Predictor(BasePredictor):
             url = url.replace('replicate.delivery/pbxt', 'storage.googleapis.com/replicate-files')
 
         path = self.weights_download_cache.ensure(url)
-        return self.gpu_weights(path)
+        weights, weights_reference = self.gpu_weights(path)
+        return weights, weights_reference
 
     @lru_cache(maxsize=10)
     def gpu_weights(self, weights_path: str):
@@ -99,6 +100,16 @@ class Predictor(BasePredictor):
             safety_checker = None,
         ).to("cuda")
         
+        pipe_reference = DiffusionPipeline.from_pretrained(
+            weights_path,
+            torch_dtype=torch.float16,
+            local_files_only=True,
+            safety_checker=None,
+            feature_extractor=pipe.feature_extractor,
+            custom_pipeline="stable_diffusion_reference",
+        ).to("cuda")
+
+
         start = time.time()
         pipe.load_textual_inversion("./ti/negative_hand-neg.pt", token="<negative-hand>")
         pipe.load_textual_inversion("./ti/badhandv4.pt", token="<badhandv4>")
@@ -109,7 +120,7 @@ class Predictor(BasePredictor):
         
         print("loading textual-inversions took: %0.2f" % (time.time() - start))
 
-        return pipe
+        return pipe, pipe_reference
 
     def upscale(self, img, upscale_rate):
         w, h = img.size
@@ -248,13 +259,6 @@ class Predictor(BasePredictor):
                 scheduler=pipe.scheduler,
                 safety_checker=None,
                 feature_extractor=pipe.feature_extractor,
-            )
-        if kind == "reference":
-            return DiffusionPipeline.from_pretrained(
-                weights,
-                safety_checker=None,
-                feature_extractor=pipe.feature_extractor,
-                custom_pipeline="stable_diffusion_reference",
             )
 
     @torch.inference_mode()
@@ -407,7 +411,7 @@ class Predictor(BasePredictor):
             print(self.weights_download_cache.cache_info())
 
         start = time.time()
-        pipe = self.get_weights(weights)
+        pipe, pipe_reference = self.get_weights(weights)
         print("loading weights took: %0.2f" % (time.time() - start))
 
         start = time.time()
@@ -515,7 +519,7 @@ class Predictor(BasePredictor):
             }
         elif reference_image:
             print("Using reference pipeline")
-            pipe = self.get_pipeline(pipe, "reference", weights)
+            pipe = pipe_reference
             extra_kwargs = {
                 "ref_image": reference_image,
                 "reference_attn": reference_attn,
