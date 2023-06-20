@@ -5,7 +5,7 @@ from diffusers.utils import load_image
 input_image = load_image("https://hf.co/datasets/huggingface/documentation-images/resolve/main/diffusers/input_image_vermeer.png")
 
 pipe = DiffusionPipeline.from_pretrained(
-       "runwayml/stable-diffusion-v1-5",
+       repo_name="runwayml/stable-diffusion-v1-5",
        custom_pipeline="stable_diffusion_reference.py",
        safety_checker=None,
        torch_dtype=torch.float16
