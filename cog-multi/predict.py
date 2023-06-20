@@ -396,6 +396,9 @@ class Predictor(BasePredictor):
         reference_adain: bool = Input(
             description="Use adain for reference image", default=False
         ),
+        reference_style_fidelity: float = Input(
+            description="Style Fidelity for reference image", default=0.5
+        ),
 
     ) -> Iterator[Path]:
         """Run a single prediction on the model"""
@@ -526,6 +529,7 @@ class Predictor(BasePredictor):
                 "ref_image": reference_image,
                 "reference_attn": reference_attn,
                 "reference_adain": reference_adain,
+                "style_fidelity": reference_style_fidelity,
                 "width": width,
                 "height": height,
                 "prompt_embeds": prompt_embeds,
