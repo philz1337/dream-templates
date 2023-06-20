@@ -423,6 +423,8 @@ class Predictor(BasePredictor):
         if control_image_openpose:
             control_image_openpose = self.load_image(control_image_openpose)
             control_image_openpose = self.process_control_openpose(control_image_openpose)
+        if reference_image:
+            reference_image = self.load_image(reference_image)
         if mask:
             mask = self.load_image(mask)
         print("loading images took: %0.2f" % (time.time() - start))
