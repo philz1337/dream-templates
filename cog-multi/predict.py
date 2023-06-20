@@ -25,6 +25,7 @@ from diffusers import (
     StableDiffusionInpaintPipelineLegacy,
     StableDiffusionPipeline,
     UniPCMultistepScheduler,
+    DiffusionPipeline,
 )
 from diffusers.utils import load_image
 
@@ -248,7 +249,7 @@ class Predictor(BasePredictor):
                 feature_extractor=pipe.feature_extractor,
             )
         if kind == "reference":
-            return StableDiffusionReferencePipeline(
+            return DiffusionPipeline(
                 vae=pipe.vae,
                 text_encoder=pipe.text_encoder,
                 tokenizer=pipe.tokenizer,
@@ -256,6 +257,7 @@ class Predictor(BasePredictor):
                 scheduler=pipe.scheduler,
                 safety_checker=None,
                 feature_extractor=pipe.feature_extractor,
+                custom_pipeline="stable_diffusion_reference",
             )
 
     @torch.inference_mode()
