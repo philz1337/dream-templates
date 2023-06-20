@@ -25,7 +25,6 @@ from diffusers import (
     StableDiffusionInpaintPipelineLegacy,
     StableDiffusionPipeline,
     UniPCMultistepScheduler,
-    StableDiffusionReferencePipeline,
 )
 from diffusers.utils import load_image
 
