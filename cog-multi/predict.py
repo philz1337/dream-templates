@@ -77,7 +77,7 @@ class Predictor(BasePredictor):
 
         self.weights_download_cache = WeightsDownloadCache()
 
-    def get_weights(self, weights: str):
+    def get_weights(self, weights: str, controlnet=None):
         if weights.startswith("https://"):
             url = weights
         else:
@@ -87,11 +87,11 @@ class Predictor(BasePredictor):
             url = url.replace('replicate.delivery/pbxt', 'storage.googleapis.com/replicate-files')
 
         path = self.weights_download_cache.ensure(url)
-        weights, weights_reference = self.gpu_weights(path)
-        return weights, weights_reference
+        weights, weights_reference, weights_reference_cn = self.gpu_weights(path, controlnet)
+        return weights, weights_reference, weights_reference_cn
 
     @lru_cache(maxsize=10)
-    def gpu_weights(self, weights_path: str):
+    def gpu_weights(self, weights_path: str, controlnet=None):
         print(f"Loading txt2img... {weights_path}")
         pipe = StableDiffusionPipeline.from_pretrained(
             weights_path,
@@ -109,6 +109,12 @@ class Predictor(BasePredictor):
             custom_pipeline="stable_diffusion_reference",
         ).to("cuda")
 
+        pipe_reference_cn = StableDiffusionControlNetReferencePipeline.from_pretrained(
+                 weights_path,
+                 controlnet=controlnet,
+                 safety_checker=None,
+                 torch_dtype=torch.float16
+                 ).to('cuda')
 
         start = time.time()
         pipe.load_textual_inversion("./ti/negative_hand-neg.pt", token="<negative-hand>")
@@ -120,7 +126,7 @@ class Predictor(BasePredictor):
         
         print("loading textual-inversions took: %0.2f" % (time.time() - start))
 
-        return pipe, pipe_reference
+        return pipe, pipe_reference, pipe_reference_cn
 
     def upscale(self, img, upscale_rate):
         w, h = img.size
@@ -414,7 +420,7 @@ class Predictor(BasePredictor):
             print(self.weights_download_cache.cache_info())
 
         start = time.time()
-        pipe, pipe_reference = self.get_weights(weights)
+        pipe, pipe_reference, pipe_reference_cn = self.get_weights(weights, self.controlnet)
         print("loading weights took: %0.2f" % (time.time() - start))
 
         start = time.time()
@@ -491,6 +497,19 @@ class Predictor(BasePredictor):
                 "prompt_embeds": prompt_embeds,
                 "negative_prompt_embeds":negative_prompt_embeds
             }
+        elif control_image_openpose and reference_image:
+             print("Using Reference ControlNet txt2img with openpose")
+             pipe = pipe_reference_cn
+             extra_kwargs = {
+                 "ref_image": reference_image,
+                 "reference_attn": reference_attn,
+                 "reference_adain": reference_adain,
+                 "style_fidelity": reference_style_fidelity,
+                 "width": width,
+                 "height": height,
+                 "prompt_embeds": prompt_embeds,
+                 "negative_prompt_embeds":negative_prompt_embeds
+             }
         elif control_image_openpose:
             print("Using ControlNet txt2img with openpose")
             pipe = self.get_pipeline(pipe, "cnet_txt2img_openpose")
