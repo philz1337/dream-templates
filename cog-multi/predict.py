@@ -109,11 +109,12 @@ class Predictor(BasePredictor):
             custom_pipeline="stable_diffusion_reference",
         ).to("cuda")
 
-        pipe_reference_cn = StableDiffusionControlNetReferencePipeline.from_pretrained(
+        pipe_reference_cn = DiffusionPipeline.from_pretrained(
                  weights_path,
                  controlnet=controlnet,
                  safety_checker=None,
-                 torch_dtype=torch.float16
+                 torch_dtype=torch.float16,
+                 custom_pipeline="stable_diffusion_controlnet_reference",
                  ).to('cuda')
 
         start = time.time()
@@ -502,6 +503,7 @@ class Predictor(BasePredictor):
              pipe = pipe_reference_cn
              extra_kwargs = {
                  "ref_image": reference_image,
+                 "image": control_image,
                  "reference_attn": reference_attn,
                  "reference_adain": reference_adain,
                  "style_fidelity": reference_style_fidelity,
