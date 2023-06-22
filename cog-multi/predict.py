@@ -407,8 +407,11 @@ class Predictor(BasePredictor):
             description="Style Fidelity for reference image", default=0.5
         ),
         reference_guess_mode: bool = Input(
-            description="Guess mode for reference image", default=False
+            description="Guess mode for reference image. only with controlnet", default=False
         ),
+        reference_attention_auto_machine_weight: float = Input(
+            description="Weight of using reference query for self attention's context.", default=0.5
+        )
 
     ) -> Iterator[Path]:
         """Run a single prediction on the model"""
@@ -514,7 +517,8 @@ class Predictor(BasePredictor):
                  "height": height,
                  "prompt_embeds": prompt_embeds,
                  "negative_prompt_embeds":negative_prompt_embeds,
-                 "guess_mode": reference_guess_mode
+                 "guess_mode": reference_guess_mode,
+                 "attention_auto_machine_weight": reference_attention_auto_machine_weight
              }
         elif control_image_openpose:
             print("Using ControlNet txt2img with openpose")
@@ -559,7 +563,7 @@ class Predictor(BasePredictor):
                 "height": height,
                 "prompt_embeds": prompt_embeds,
                 "negative_prompt_embeds": negative_prompt_embeds,
-                "guess_mode": reference_guess_mode
+                "attention_auto_machine_weight": reference_attention_auto_machine_weight,
             }
 
         else:
