@@ -406,6 +406,9 @@ class Predictor(BasePredictor):
         reference_style_fidelity: float = Input(
             description="Style Fidelity for reference image", default=0.5
         ),
+        reference_guess_mode: bool = Input(
+            description="Guess mode for reference image", default=False
+        ),
 
     ) -> Iterator[Path]:
         """Run a single prediction on the model"""
@@ -510,7 +513,8 @@ class Predictor(BasePredictor):
                  "width": width,
                  "height": height,
                  "prompt_embeds": prompt_embeds,
-                 "negative_prompt_embeds":negative_prompt_embeds
+                 "negative_prompt_embeds":negative_prompt_embeds,
+                 "guess_mode": reference_guess_mode
              }
         elif control_image_openpose:
             print("Using ControlNet txt2img with openpose")
@@ -554,7 +558,8 @@ class Predictor(BasePredictor):
                 "width": width,
                 "height": height,
                 "prompt_embeds": prompt_embeds,
-                "negative_prompt_embeds":negative_prompt_embeds
+                "negative_prompt_embeds": negative_prompt_embeds,
+                "guess_mode": reference_guess_mode
             }
 
         else:
