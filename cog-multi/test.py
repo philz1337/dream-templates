@@ -4,7 +4,7 @@ from diffusers import StableDiffusionInpaintPipeline
 
 print("torch version:   " , torch.__version__)
 
-img_path = "image.jpeg"
+img_path = "x.png"
 mask_path = "mask.png"
 
 init_image = PIL.Image.open(img_path).convert("RGB")
@@ -15,9 +15,10 @@ pipe = StableDiffusionInpaintPipeline.from_pretrained(
 )
 pipe = pipe.to("cuda")
 
-prompt = "Face of a yellow cat, high resolution, sitting on a park bench"
+prompt = "RAW photo, sks man, (high detailed skin:1.2), as a business man, 8k uhd, dslr, soft lighting, high quality, film grain, Fujifilm XT3"
+negative_prompt = "(deformed iris, deformed pupils, semi-realistic, cgi, 3d, render, sketch, cartoon, drawing, anime, mutated hands and fingers:1.4), (deformed, distorted, disfigured:1.3), poorly drawn, bad anatomy, wrong anatomy, extra limb, missing limb, floating limbs, disconnected limbs, mutation, mutated, ugly, disgusting, amputation"
 image = pipe(prompt=prompt, image=init_image, mask_image=mask_image,
-             width=512, height=768
+             width=512, height=768, negative_prompt=negative_prompt, guidance_scale=4
              ).images[0]
 
 output_path = "output.png"
