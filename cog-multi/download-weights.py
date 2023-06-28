@@ -10,7 +10,7 @@ if os.path.exists(settings.MODEL_CACHE):
 os.makedirs(settings.MODEL_CACHE)
 
 import torch
-from diffusers import ControlNetModel
+from diffusers import ControlNetModel, StableDiffusionInpaintPipeline
 from controlnet_aux import MidasDetector
 
 MidasDetector.from_pretrained(
@@ -48,5 +48,14 @@ cn_tiles = ControlNetModel.from_pretrained(
 )
 cn_tiles.half()
 cn_tiles.save_pretrained(os.path.join(settings.MODEL_CACHE, 'tiles'))
+
+inpainting = StableDiffusionInpaintPipeline.from_pretrained(
+    settings.INPAINTING_MODEL,
+    torch_dtype=torch.float16,
+    cache_dir=TMP_CACHE,
+)
+inpainting.half()
+inpainting.save_pretrained(os.path.join(settings.MODEL_CACHE, 'inpainting'))
+
 
 shutil.rmtree(TMP_CACHE)

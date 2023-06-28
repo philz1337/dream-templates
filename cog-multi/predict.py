@@ -26,6 +26,7 @@ from diffusers import (
     StableDiffusionPipeline,
     UniPCMultistepScheduler,
     DiffusionPipeline,
+    StableDiffusionInpaintPipeline,
 )
 from diffusers.utils import load_image
 
@@ -73,7 +74,12 @@ class Predictor(BasePredictor):
             local_files_only=True,
         ).to("cuda")
 
-
+        print("Loading inpainting...")
+        self.inpainting = StableDiffusionInpaintPipeline.from_pretrained(
+            os.path.join(settings.MODEL_CACHE, "inpainting"),
+            torch_dtype=torch.float16,
+            local_files_only=True,
+        ).to("cuda")
 
         self.weights_download_cache = WeightsDownloadCache()
 
@@ -134,6 +140,16 @@ class Predictor(BasePredictor):
         new_w, new_h = int(w * upscale_rate), int(h * upscale_rate)
         return img.resize((new_w, new_h), Image.BICUBIC)
     
+    def resize_and_center_image(self, image):
+        final_width = 512
+        final_height = 768
+        image = image.resize((final_width // 2, final_height // 2))
+        new_image = Image.new("RGB", (final_width, final_height), color="black")
+        x_offset = (final_width - image.width) // 2
+        y_offset = (final_height - image.height) // 2
+        new_image.paste(image, (x_offset, y_offset))
+        return new_image
+
     def resize_for_condition_image(self, input_image: Image, resolution: int):
         input_image = input_image.convert("RGB")
         W, H = input_image.size
@@ -267,6 +283,8 @@ class Predictor(BasePredictor):
                 safety_checker=None,
                 feature_extractor=pipe.feature_extractor,
             )
+        if kind == "zoom_out":
+            return self.inpainting
 
     @torch.inference_mode()
     def predict(
@@ -411,7 +429,10 @@ class Predictor(BasePredictor):
         ),
         reference_attention_auto_machine_weight: float = Input(
             description="Weight of using reference query for self attention's context.", default=0.5
-        )
+        ),
+        zoom_out: bool = Input(
+            description="Zoom out image", default=False
+        ),
 
     ) -> Iterator[Path]:
         """Run a single prediction on the model"""
@@ -542,6 +563,22 @@ class Predictor(BasePredictor):
                 "mask_image": mask,
                 "strength": prompt_strength,
             }
+        elif image and zoom_out:
+            print("Using zoom out pipeline")
+            if height/width != 1.5:
+                raise ValueError(
+                    "Zoom out pipeline only supports 1.5 aspect ratio. Because it is using a predefined mask."
+                )
+            pipe = self.get_pipeline(pipe, "zoom_out")
+            mask = self.load_image("mask.png")
+            image = self.resize_and_center_image(image)
+            extra_kwargs = {
+                "prompt": prompt,
+                "negative_prompt": negative_prompt,
+                "image": image,
+                "mask_image": mask,
+                "strength": prompt_strength,
+            }
         elif image:
             print("Using img2img pipeline")
             pipe = self.get_pipeline(pipe, "img2img")
@@ -565,7 +602,6 @@ class Predictor(BasePredictor):
                 "negative_prompt_embeds": negative_prompt_embeds,
                 "attention_auto_machine_weight": reference_attention_auto_machine_weight,
             }
-
         else:
             print("Using txt2img pipeline")
             pipe = self.get_pipeline(pipe, "txt2img")
@@ -575,7 +611,6 @@ class Predictor(BasePredictor):
                 "prompt_embeds": prompt_embeds,
                 "negative_prompt_embeds":negative_prompt_embeds
             }
-
         if upscale_afterwards: 
             if upscale_afterwards_method == "img2img":
                 print("Using upscale pipeline")
