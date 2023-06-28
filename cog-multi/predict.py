@@ -562,20 +562,14 @@ class Predictor(BasePredictor):
             pipe = self.get_pipeline(pipe, "zoom_out")
             image = self.resize_and_center_image(image)
 
-            if True:
-                    output_path = Path(f"/tmp/test-image.png")
-                    image.save(output_path)
-                    yield Path(output_path)
-                    output_path = Path(f"/tmp/test-mask.png")
-                    mask.save(output_path)
-                    yield Path(output_path)
-                    
             extra_kwargs = {
                 "prompt": prompt,
                 "negative_prompt": negative_prompt,
                 "image": image,
                 "mask_image": mask,
                 "strength": prompt_strength,
+                "width": 512,
+                "height": 768,
             }
         elif image and mask:
             print("Using inpaint pipeline")
