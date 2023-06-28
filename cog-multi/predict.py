@@ -651,6 +651,11 @@ class Predictor(BasePredictor):
             if upscale_afterwards:
                 img = output.images[0]
 
+                #check tensor size
+                array1 = np.array(img)
+                size1 = array1.shape
+                print("Größe von Bild 1:", size1)
+                
                 upscale_kwargs = {
                         "strength": upscale_prompt_strength,
                         "prompt_embeds": prompt_embeds,
