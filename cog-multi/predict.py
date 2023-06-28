@@ -575,7 +575,8 @@ class Predictor(BasePredictor):
             #         "Zoom out pipeline only supports 1.5 aspect ratio. Because it is using a predefined mask."
             #     )
             pipe = self.get_pipeline(pipe, "zoom_out")
-            mask = self.load_image("/src/mask.png")
+            
+            # mask = self.load_image("/src/mask.png")
             image = self.resize_and_center_image(image)
             extra_kwargs = {
                 "prompt": prompt,
