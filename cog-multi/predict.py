@@ -99,13 +99,16 @@ class Predictor(BasePredictor):
     @lru_cache(maxsize=10)
     def gpu_weights(self, weights_path: str, controlnet=None):
         print(f"Loading txt2img... {weights_path}")
+        start = time.time()
         pipe = StableDiffusionPipeline.from_pretrained(
             weights_path,
             torch_dtype=torch.float16,
             local_files_only=True,
             safety_checker = None,
         ).to("cuda")
-        
+        print("loading txt2img weights took: %0.2f" % (time.time() - start))
+
+        start = time.time()
         pipe_reference = DiffusionPipeline.from_pretrained(
             weights_path,
             torch_dtype=torch.float16,
@@ -122,6 +125,7 @@ class Predictor(BasePredictor):
                  torch_dtype=torch.float16,
                  custom_pipeline="stable_diffusion_controlnet_reference",
                  ).to('cuda')
+        print("loading reference weights took: %0.2f" % (time.time() - start))
 
         start = time.time()
         pipe.load_textual_inversion("./ti/negative_hand-neg.pt", token="<negative-hand>")
