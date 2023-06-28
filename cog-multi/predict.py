@@ -166,6 +166,14 @@ class Predictor(BasePredictor):
         return img
 
     def load_image(self, image_path: Path, upscale_rate: float = 1.0):
+        current_path = os.getcwd()
+        print("Aktueller Pfad:", current_path)
+
+        files = os.listdir(current_path)
+        print("Dateien im Ordner:")
+        for file in files:
+            print(file)
+
         if image_path is None:
             return None
         # not sure why I have to copy the image, but it fails otherwise
