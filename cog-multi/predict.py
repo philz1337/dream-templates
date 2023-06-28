@@ -468,6 +468,8 @@ class Predictor(BasePredictor):
             reference_image = self.load_image(reference_image)
         if mask:
             mask = self.load_image(mask)
+        if zoom_out:
+            mask = self.load_image("mask.png")
         print("loading images took: %0.2f" % (time.time() - start))
 
         # FIXME(ja): we shouldn't need to do this multiple times
@@ -558,9 +560,8 @@ class Predictor(BasePredictor):
         elif image and zoom_out:
             print("Using zoom out pipeline")
             pipe = self.get_pipeline(pipe, "zoom_out")
-            
-            mask = self.load_image("mask.png")
             image = self.resize_and_center_image(image)
+
             if True:
                     output_path = Path(f"/tmp/test-image.png")
                     image.save(output_path)
@@ -568,6 +569,7 @@ class Predictor(BasePredictor):
                     output_path = Path(f"/tmp/test-mask.png")
                     mask.save(output_path)
                     yield Path(output_path)
+                    
             extra_kwargs = {
                 "prompt": prompt,
                 "negative_prompt": negative_prompt,
