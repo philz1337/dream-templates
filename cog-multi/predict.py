@@ -661,6 +661,7 @@ class Predictor(BasePredictor):
                     output_path = Path(f"/tmp/seed-{this_seed}-raw.png")
                     img.save(output_path)
                     yield Path(output_path)
+                    img = self.load_image(output_path)
 
                 if upscale_afterwards_method == "img2img":
                     img = self.upscale(img, upscale_afterwards_rate)
