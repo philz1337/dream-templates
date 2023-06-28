@@ -576,7 +576,7 @@ class Predictor(BasePredictor):
             #     )
             pipe = self.get_pipeline(pipe, "zoom_out")
             
-            # mask = self.load_image("/src/mask.png")
+            mask = self.load_image("mask.png")
             image = self.resize_and_center_image(image)
             extra_kwargs = {
                 "prompt": prompt,
