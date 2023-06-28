@@ -54,7 +54,6 @@ inpainting = StableDiffusionInpaintPipeline.from_pretrained(
     torch_dtype=torch.float16,
     cache_dir=TMP_CACHE,
 )
-inpainting.half()
 inpainting.save_pretrained(os.path.join(settings.MODEL_CACHE, 'inpainting'))
 
 
