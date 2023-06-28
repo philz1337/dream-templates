@@ -555,6 +555,26 @@ class Predictor(BasePredictor):
                 "prompt_embeds": prompt_embeds,
                 "negative_prompt_embeds":negative_prompt_embeds
             }
+        elif image and zoom_out:
+            print("Using zoom out pipeline")
+            pipe = self.get_pipeline(pipe, "zoom_out")
+            
+            mask = self.load_image("mask.png")
+            image = self.resize_and_center_image(image)
+            if True:
+                    output_path = Path(f"/tmp/test-image.png")
+                    image.save(output_path)
+                    yield Path(output_path)
+                    output_path = Path(f"/tmp/test-mask.png")
+                    mask.save(output_path)
+                    yield Path(output_path)
+            extra_kwargs = {
+                "prompt": prompt,
+                "negative_prompt": negative_prompt,
+                "image": image,
+                "mask_image": mask,
+                "strength": prompt_strength,
+            }
         elif image and mask:
             print("Using inpaint pipeline")
             pipe = self.get_pipeline(pipe, "inpaint")
@@ -567,24 +587,7 @@ class Predictor(BasePredictor):
                 "mask_image": mask,
                 "strength": prompt_strength,
             }
-        elif image and zoom_out:
-            print("Using zoom out pipeline")
-            print("height/width: ", height/width)
-            # if height/width != 1.5:
-            #     raise ValueError(
-            #         "Zoom out pipeline only supports 1.5 aspect ratio. Because it is using a predefined mask."
-            #     )
-            pipe = self.get_pipeline(pipe, "zoom_out")
-            
-            mask = self.load_image("mask.png")
-            image = self.resize_and_center_image(image)
-            extra_kwargs = {
-                "prompt": prompt,
-                "negative_prompt": negative_prompt,
-                "image": image,
-                "mask_image": mask,
-                "strength": prompt_strength,
-            }
+        
         elif image:
             print("Using img2img pipeline")
             pipe = self.get_pipeline(pipe, "img2img")
