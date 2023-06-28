@@ -565,10 +565,11 @@ class Predictor(BasePredictor):
             }
         elif image and zoom_out:
             print("Using zoom out pipeline")
-            if height/width != 1.5:
-                raise ValueError(
-                    "Zoom out pipeline only supports 1.5 aspect ratio. Because it is using a predefined mask."
-                )
+            print("height/width: ", height/width)
+            # if height/width != 1.5:
+            #     raise ValueError(
+            #         "Zoom out pipeline only supports 1.5 aspect ratio. Because it is using a predefined mask."
+            #     )
             pipe = self.get_pipeline(pipe, "zoom_out")
             mask = self.load_image("mask.png")
             image = self.resize_and_center_image(image)
