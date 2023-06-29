@@ -567,7 +567,7 @@ class Predictor(BasePredictor):
                 "negative_prompt": negative_prompt,
                 "image": image,
                 "mask_image": mask,
-                "strength": prompt_strength,
+                "strength": 1,
                 "width": 512,
                 "height": 768,
             }
@@ -649,13 +649,7 @@ class Predictor(BasePredictor):
             )
             
             if upscale_afterwards:
-                img = output.images[0]
-                channels = img.getbands()
-                print("Channels of the image :", channels)
-
-                img = img.convert('RGB')
-                channels = img.getbands()
-                print("Channels of the image after .convert('RGB') :", channels)
+                img_for_upscaling = output.images[0]
 
                 upscale_kwargs = {
                         "strength": upscale_prompt_strength,
@@ -665,20 +659,20 @@ class Predictor(BasePredictor):
                 
                 if output_raw:
                     output_path = Path(f"/tmp/seed-{this_seed}-raw.png")
-                    img.save(output_path)
+                    img_for_upscaling.save(output_path)
                     yield Path(output_path)
-
-                # Try to fix bug with tensor stuff
-                zwischenspeicher = Path(f"/tmp/asdffsaasdfsaddsdfssfad.png")
-                img.save(zwischenspeicher)
-                img = Image.open(zwischenspeicher)
+                    
+                    # Try to fix bug with tensor stuff
+                    zwischenspeicher = Path(f"/tmp/asdffsaasdfsaddsdfssfad.png")
+                    img_for_upscaling.save(zwischenspeicher)
+                    img_for_upscaling = Image.open(zwischenspeicher)
 
                 if upscale_afterwards_method == "img2img":
-                    img = self.upscale(img, upscale_afterwards_rate)
+                    img_for_upscaling = self.upscale(img_for_upscaling, upscale_afterwards_rate)
                     upscale_pipe.scheduler = make_scheduler(upscale_scheduler, pipe.scheduler.config)
                     
                     output = upscale_pipe(
-                        image=img,
+                        image=img_for_upscaling,
                         guidance_scale=upscale_guidance_scale,
                         generator=generator,
                         num_inference_steps=upscale_num_inference_steps,
@@ -686,8 +680,8 @@ class Predictor(BasePredictor):
                     )
 
                 elif upscale_afterwards_method == "tiles":
-                    width_new_image = img.size[0]*upscale_afterwards_rate
-                    condition_image = self.resize_for_condition_image(img, width_new_image)
+                    width_new_image = img_for_upscaling.size[0]*upscale_afterwards_rate
+                    condition_image = self.resize_for_condition_image(img_for_upscaling, width_new_image)
                     output = upscale_pipe(                    
                         image=condition_image, 
                         controlnet_conditioning_image=condition_image, 
