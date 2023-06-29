@@ -662,11 +662,6 @@ class Predictor(BasePredictor):
                     img_for_upscaling.save(output_path)
                     yield Path(output_path)
                     
-                    # Try to fix bug with tensor stuff
-                    zwischenspeicher = Path(f"/tmp/asdffsaasdfsaddsdfssfad.png")
-                    img_for_upscaling.save(zwischenspeicher)
-                    img_for_upscaling = self.load_image(zwischenspeicher)
-
                 if upscale_afterwards_method == "img2img":
                     img_for_upscaling = self.upscale(img_for_upscaling, upscale_afterwards_rate)
                     upscale_pipe.scheduler = make_scheduler(upscale_scheduler, pipe.scheduler.config)
