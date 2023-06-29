@@ -665,8 +665,7 @@ class Predictor(BasePredictor):
                     # Try to fix bug with tensor stuff
                     zwischenspeicher = Path(f"/tmp/asdffsaasdfsaddsdfssfad.png")
                     img_for_upscaling.save(zwischenspeicher)
-                    img_for_upscaling = Image.open(zwischenspeicher)
-                    img_for_upscaling = self.load_image(img_for_upscaling)
+                    img_for_upscaling = self.load_image(zwischenspeicher)
 
                 if upscale_afterwards_method == "img2img":
                     img_for_upscaling = self.upscale(img_for_upscaling, upscale_afterwards_rate)
