@@ -666,6 +666,7 @@ class Predictor(BasePredictor):
                     zwischenspeicher = Path(f"/tmp/asdffsaasdfsaddsdfssfad.png")
                     img_for_upscaling.save(zwischenspeicher)
                     img_for_upscaling = Image.open(zwischenspeicher)
+                    img_for_upscaling = self.load_image(img_for_upscaling)
 
                 if upscale_afterwards_method == "img2img":
                     img_for_upscaling = self.upscale(img_for_upscaling, upscale_afterwards_rate)
