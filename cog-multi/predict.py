@@ -649,18 +649,19 @@ class Predictor(BasePredictor):
             )
             
             if upscale_afterwards:
-                img = output.images[0].convert('RGB')
+                img = output.images[0]
+                channels = img.getbands()
+                print("Channels of the image :", channels)
 
-                # upscale_kwargs = {
-                #         "strength": upscale_prompt_strength,
-                #         "prompt_embeds": prompt_embeds,
-                #         "negative_prompt_embeds":negative_prompt_embeds
-                #     }
+                img = img.convert('RGB')
+                channels = img.getbands()
+                print("Channels of the image after .convert('RGB') :", channels)
+
                 upscale_kwargs = {
-                    "strength": upscale_prompt_strength,
-                    "prompt": prompt,
-                    "negative_prompt": negative_prompt,
-                }
+                        "strength": upscale_prompt_strength,
+                        "prompt_embeds": prompt_embeds,
+                        "negative_prompt_embeds":negative_prompt_embeds
+                    }
                 
                 if output_raw:
                     output_path = Path(f"/tmp/seed-{this_seed}-raw.png")
