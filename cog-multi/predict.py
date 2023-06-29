@@ -650,12 +650,17 @@ class Predictor(BasePredictor):
             
             if upscale_afterwards:
                 img = output.images[0].convert('RGB')
-                
+
+                # upscale_kwargs = {
+                #         "strength": upscale_prompt_strength,
+                #         "prompt_embeds": prompt_embeds,
+                #         "negative_prompt_embeds":negative_prompt_embeds
+                #     }
                 upscale_kwargs = {
-                        "strength": upscale_prompt_strength,
-                        "prompt_embeds": prompt_embeds,
-                        "negative_prompt_embeds":negative_prompt_embeds
-                    }
+                    "strength": upscale_prompt_strength,
+                    "prompt": prompt,
+                    "negative_prompt": negative_prompt,
+                }
                 
                 if output_raw:
                     output_path = Path(f"/tmp/seed-{this_seed}-raw.png")
