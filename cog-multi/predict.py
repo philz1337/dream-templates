@@ -649,8 +649,8 @@ class Predictor(BasePredictor):
             )
             
             if upscale_afterwards:
-                img = output.images[0]
-
+                img = output.images[0].convert('RGB')
+                
                 upscale_kwargs = {
                         "strength": upscale_prompt_strength,
                         "prompt_embeds": prompt_embeds,
