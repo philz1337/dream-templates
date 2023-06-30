@@ -462,7 +462,10 @@ class Predictor(BasePredictor):
         ),
         lora_model_link: str = Input(
             description="Link to LoRa model .safetensor or civitai link", default=None
-        )
+        ),
+        lora_strength: float = Input(
+            description="LoRa strength", default=1
+        ),
 
     ) -> Iterator[Path]:
         """Run a single prediction on the model"""
@@ -649,6 +652,12 @@ class Predictor(BasePredictor):
             elif upscale_afterwards_method == "tiles":
                 print("Using upscale tiles pipeline")
                 upscale_pipe = self.get_pipeline(pipe, "cnet_img2img_tiles")
+            upscale_kwargs = {
+                        "strength": upscale_prompt_strength,
+                        "prompt_embeds": prompt_embeds,
+                        "negative_prompt_embeds":negative_prompt_embeds
+                    }
+        lora_kwargs = {}
         if lora_model_link:
             print("Using LoRA pipeline")
             start_lora = time.time()
@@ -657,6 +666,9 @@ class Predictor(BasePredictor):
             pipe.load_lora_weights(".", weight_name=lora_file_path)
             if upscale_afterwards: 
                 pipe.load_lora_weights(".", weight_name=lora_file_path)
+            lora_kwargs =  {
+                "cross_attention_kwargs": {"scale": lora_strength}
+                }
             print("loading lora took: %0.2f" % (time.time() - start_lora))
 
         print("loading pipeline took: %0.2f" % (time.time() - start))
@@ -681,16 +693,11 @@ class Predictor(BasePredictor):
                 generator=generator,
                 num_inference_steps=num_inference_steps,
                 **extra_kwargs,
+                **lora_kwargs,
             )
             
             if upscale_afterwards:
                 img_for_upscaling = output.images[0]
-
-                upscale_kwargs = {
-                        "strength": upscale_prompt_strength,
-                        "prompt_embeds": prompt_embeds,
-                        "negative_prompt_embeds":negative_prompt_embeds
-                    }
                 
                 if output_raw:
                     output_path = Path(f"/tmp/seed-{this_seed}-raw.png")
@@ -706,7 +713,8 @@ class Predictor(BasePredictor):
                         guidance_scale=upscale_guidance_scale,
                         generator=generator,
                         num_inference_steps=upscale_num_inference_steps,
-                        **upscale_kwargs,                
+                        **upscale_kwargs,
+                        **lora_kwargs,                
                     )
 
                 elif upscale_afterwards_method == "tiles":
