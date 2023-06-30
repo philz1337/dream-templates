@@ -652,6 +652,7 @@ class Predictor(BasePredictor):
         if lora_model_link:
             print("Using LoRA pipeline")
             start_lora = time.time()
+            print("downloading lora weights: ", lora_model_link)
             lora_file_path = self.download_lora_weights(lora_model_link)
             pipe.load_lora_weights(".", weight_name=lora_file_path)
             if upscale_afterwards: 
