@@ -140,7 +140,7 @@ class Predictor(BasePredictor):
 
         return pipe, pipe_reference, pipe_reference_cn
     
-    def download_lora_weights(url: str):
+    def download_lora_weights(self, url: str):
         folder_path = "/tmp/lora"
 
         parsed_url = urlparse(url)
@@ -461,7 +461,7 @@ class Predictor(BasePredictor):
             description="Zoom out image", default=False
         ),
         lora_model_link: str = Input(
-            description="Link to LoRa model .safetensor", default=None
+            description="Link to LoRa model .safetensor or civitai link", default=None
         )
 
     ) -> Iterator[Path]:
