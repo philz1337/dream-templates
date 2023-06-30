@@ -1,25 +1,26 @@
-import PIL
 import torch
-from diffusers import StableDiffusionInpaintPipeline
 
-print("torch version:   " , torch.__version__)
+from diffusers import StableDiffusionPipeline, DPMSolverMultistepScheduler
 
-img_path = "x.png"
-mask_path = "mask.png"
+import requests
 
-init_image = PIL.Image.open(img_path).convert("RGB")
-mask_image = PIL.Image.open(mask_path).convert("RGB")
+url = "https://civitai.com/api/download/models/15603"
+filename = "light_and_shadow.safetensors"
 
-pipe = StableDiffusionInpaintPipeline.from_pretrained(
-    "runwayml/stable-diffusion-inpainting", torch_dtype=torch.float16
+response = requests.get(url)
+response.raise_for_status()
+
+with open(filename, "wb") as file:
+    file.write(response.content)
+
+print("Download abgeschlossen!")
+
+
+pipeline = StableDiffusionPipeline.from_pretrained(
+    "gsdf/Counterfeit-V2.5", torch_dtype=torch.float16, safety_checker=None
+).to("cuda")
+pipeline.scheduler = DPMSolverMultistepScheduler.from_config(
+    pipeline.scheduler.config, use_karras_sigmas=True
 )
-pipe = pipe.to("cuda")
 
-prompt = "RAW photo, sks man, (high detailed skin:1.2), as a business man, 8k uhd, dslr, soft lighting, high quality, film grain, Fujifilm XT3"
-negative_prompt = "(deformed iris, deformed pupils, semi-realistic, cgi, 3d, render, sketch, cartoon, drawing, anime, mutated hands and fingers:1.4), (deformed, distorted, disfigured:1.3), poorly drawn, bad anatomy, wrong anatomy, extra limb, missing limb, floating limbs, disconnected limbs, mutation, mutated, ugly, disgusting, amputation"
-image = pipe(prompt=prompt, image=init_image, mask_image=mask_image,
-             width=512, height=768, negative_prompt=negative_prompt, guidance_scale=4
-             ).images[0]
-
-output_path = "output.png"
-image.save(output_path)
+#pipeline.load_lora_weights(".", weight_name="light_and_shadow.safetensors")
