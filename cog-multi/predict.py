@@ -4,7 +4,6 @@ import subprocess
 from typing import Iterator
 import time
 
-
 import torch
 from cog import BasePredictor, Input, Path
 import io
@@ -38,6 +37,7 @@ from PIL import Image
 import numpy as np
 from functools import lru_cache
 from weights import WeightsDownloadCache
+from urllib.parse import urlparse
 
 class Predictor(BasePredictor):
     def setup(self):
@@ -139,6 +139,28 @@ class Predictor(BasePredictor):
         print("loading textual-inversions took: %0.2f" % (time.time() - start))
 
         return pipe, pipe_reference, pipe_reference_cn
+
+    def download_lora_weights(self, url: str):
+        folder_path = "/tmp/lora"
+
+        parsed_url = urlparse(url)
+        filename = os.path.basename(parsed_url.path)
+
+        if not filename.endswith(".safetensors"):
+            raise ValueError("LoRa link should end with .safetensors")
+
+        os.makedirs(folder_path, exist_ok=True)
+
+        file_path = os.path.join(folder_path, filename)
+
+        response = requests.get(url)
+        response.raise_for_status()
+
+        with open(file_path, "wb") as file:
+            file.write(response.content)
+
+        print("Lora saved under:", file_path)
+        return file_path
 
     def upscale(self, img, upscale_rate):
         w, h = img.size
@@ -438,12 +460,9 @@ class Predictor(BasePredictor):
         zoom_out: bool = Input(
             description="Zoom out image", default=False
         ),
-        lora_model_id: str = Input(
-            description="Lora Model ID", default=None
-        ),
-        lora_filename: str = Input(
-            description="Lora Filename", default=None
-        ),
+        lora_model_link: str = Input(
+            description="Link to LoRa model .safetensor", default=None
+        )
 
     ) -> Iterator[Path]:
         """Run a single prediction on the model"""
@@ -630,12 +649,13 @@ class Predictor(BasePredictor):
             elif upscale_afterwards_method == "tiles":
                 print("Using upscale tiles pipeline")
                 upscale_pipe = self.get_pipeline(pipe, "cnet_img2img_tiles")
-        if lora_filename:
+        if lora_model_link:
             print("Using LoRA pipeline")
             start_lora = time.time()
-            pipe.load_lora_weights(lora_model_id, weight_name=lora_filename)
+            lora_file_path = self.download_lora_weights(lora_model_link)
+            pipe.load_lora_weights(".", weight_name=lora_file_path)
             if upscale_afterwards: 
-                upscale_pipe.load_lora_weights(lora_model_id, weight_name=lora_filename)
+                pipe.load_lora_weights(".", weight_name=lora_file_path)
             print("loading lora took: %0.2f" % (time.time() - start_lora))
 
         print("loading pipeline took: %0.2f" % (time.time() - start))
