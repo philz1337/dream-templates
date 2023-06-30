@@ -2,3 +2,4 @@
 __pycache__/
 diffusers-cache/
 weights/
+/cog-multi/lora

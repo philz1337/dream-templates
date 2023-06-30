@@ -134,7 +134,8 @@ class Predictor(BasePredictor):
         pipe.load_textual_inversion("./ti/ng_deepnegative_v1_75t.pt", token="<ng-deepnegative>")
         pipe.load_textual_inversion("./ti/bad-picture-chill-75v.pt", token="<bad-picture-chill>")
         pipe.load_textual_inversion("./ti/CyberRealistic_Negative-neg.pt", token="<cyberrealistic-neg>")
-        
+        pipe.load_textual_inversion("./ti/realisticvision-negative-embedding.pt", token="<realisticvision-neg>")
+
         print("loading textual-inversions took: %0.2f" % (time.time() - start))
 
         return pipe, pipe_reference, pipe_reference_cn
@@ -437,6 +438,12 @@ class Predictor(BasePredictor):
         zoom_out: bool = Input(
             description="Zoom out image", default=False
         ),
+        lora_model_id: str = Input(
+            description="Lora Model ID", default=None
+        ),
+        lora_filename: str = Input(
+            description="Lora Filename", default=None
+        ),
 
     ) -> Iterator[Path]:
         """Run a single prediction on the model"""
@@ -623,7 +630,12 @@ class Predictor(BasePredictor):
             elif upscale_afterwards_method == "tiles":
                 print("Using upscale tiles pipeline")
                 upscale_pipe = self.get_pipeline(pipe, "cnet_img2img_tiles")
-            
+        if lora_filename:
+            print("Using LoRA pipeline")
+            start_lora = time.time()
+            pipe.load_lora_weights(lora_model_id, weight_name=lora_filename)
+            print("loading lora took: %0.2f" % (time.time() - start_lora))
+
         print("loading pipeline took: %0.2f" % (time.time() - start))
 
         if seed is None:
