@@ -139,15 +139,15 @@ class Predictor(BasePredictor):
         print("loading textual-inversions took: %0.2f" % (time.time() - start))
 
         return pipe, pipe_reference, pipe_reference_cn
-
-    def download_lora_weights(self, url: str):
+    
+    def download_lora_weights(url: str):
         folder_path = "/tmp/lora"
 
         parsed_url = urlparse(url)
         filename = os.path.basename(parsed_url.path)
 
-        if not filename.endswith(".safetensors"):
-            raise ValueError("LoRa link should end with .safetensors")
+        if "civitai.com" in parsed_url.netloc:
+            filename = f"{os.path.basename(parsed_url.path)}.safetensors"
 
         os.makedirs(folder_path, exist_ok=True)
 
