@@ -634,6 +634,8 @@ class Predictor(BasePredictor):
             print("Using LoRA pipeline")
             start_lora = time.time()
             pipe.load_lora_weights(lora_model_id, weight_name=lora_filename)
+            if upscale_afterwards: 
+                upscale_pipe.load_lora_weights(lora_model_id, weight_name=lora_filename)
             print("loading lora took: %0.2f" % (time.time() - start_lora))
 
         print("loading pipeline took: %0.2f" % (time.time() - start))
