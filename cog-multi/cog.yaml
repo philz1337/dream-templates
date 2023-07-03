@@ -12,12 +12,12 @@ build:
     - "transformers==4.27.1"
     - "accelerate==0.17.1"
     - "safetensors==0.3.1"
+    - "compel==1.2.1"
   system_packages:
     - ffmpeg
     - libsm6
     - libxext6
   run:
     - "pip install git+https://github.com/patrickvonplaten/controlnet_aux.git@dfb604120af6e5acf21936f79aecb046d0faaa29"
-    - "pip install compel==1.0.4"
     - "mkdir /gc && cd /gc && curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-426.0.0-linux-x86_64.tar.gz && tar -xf google-cloud-cli-426.0.0-linux-x86_64.tar.gz && ./google-cloud-sdk/install.sh -q"
 predict: "predict.py:Predictor"

@@ -7,7 +7,7 @@ import time
 import torch
 from cog import BasePredictor, Input, Path
 import io
-from compel import Compel
+from compel import Compel, DiffusersTextualInversionManager
 import requests
 import tarfile
 from diffusers import (
@@ -505,11 +505,13 @@ class Predictor(BasePredictor):
         # or perhaps we create the object each time?
         
         print("Loading compel...")
+        textual_inversion_manager = DiffusersTextualInversionManager(pipe)
         compel = Compel(
             tokenizer=pipe.tokenizer,
             text_encoder=pipe.text_encoder,
+            textual_inversion_manager=textual_inversion_manager,
         )
-
+        
         if prompt:
             print("parsed prompt:", compel.parse_prompt_string(prompt))
             prompt_embeds = compel(prompt)
