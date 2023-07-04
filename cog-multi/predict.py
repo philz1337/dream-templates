@@ -424,6 +424,10 @@ class Predictor(BasePredictor):
             description="Upscaler: Prompt strength when using init image. 1.0 corresponds to full destruction of information in init image",
             default=0.2,
         ),
+        upscale_second_prompt_strength: float = Input(
+            description="Upscaler: Prompt strength when using init image. 1.0 corresponds to full destruction of information in init image",
+            default=0.2,
+        ),
         upscale_scheduler: str = Input(
             default="DDIM",
             choices=[
@@ -655,7 +659,6 @@ class Predictor(BasePredictor):
                 print("Using upscale tiles pipeline")
                 upscale_pipe = self.get_pipeline(pipe, "cnet_img2img_tiles")
             upscale_kwargs = {
-                        "strength": upscale_prompt_strength,
                         "prompt_embeds": prompt_embeds,
                         "negative_prompt_embeds":negative_prompt_embeds
                     }
@@ -715,9 +718,20 @@ class Predictor(BasePredictor):
                         guidance_scale=upscale_guidance_scale,
                         generator=generator,
                         num_inference_steps=upscale_num_inference_steps,
+                        strength=upscale_prompt_strength,   
                         **upscale_kwargs,
                         **lora_kwargs,                
                     )
+                    if upscale_afterwards_twice:
+                        output = upscale_pipe(                    
+                            image=output.images[0], 
+                            guidance_scale=upscale_guidance_scale,
+                            generator=generator,
+                            num_inference_steps=upscale_num_inference_steps,
+                            strength=upscale_second_prompt_strength,
+                            **upscale_kwargs,     
+                            **lora_kwargs, 
+                            )
 
                 elif upscale_afterwards_method == "tiles":
                     width_new_image = img_for_upscaling.size[0]*upscale_afterwards_rate
@@ -729,9 +743,22 @@ class Predictor(BasePredictor):
                         height=condition_image.size[1],
                         generator=generator,
                         num_inference_steps=upscale_num_inference_steps,
-                        **upscale_kwargs,     
+                        strength=upscale_prompt_strength, 
+                        **upscale_kwargs,   
+                        **lora_kwargs,   
                         )
-                    
+                    if upscale_afterwards_twice:
+                        output = upscale_pipe(                    
+                            image=output.images[0], 
+                            controlnet_conditioning_image=condition_image, 
+                            width=condition_image.size[0],
+                            height=condition_image.size[1],
+                            generator=generator,
+                            num_inference_steps=upscale_num_inference_steps,
+                            strength=upscale_second_prompt_strength,
+                            **upscale_kwargs,   
+                            **lora_kwargs,   
+                            )
 
             if output.nsfw_content_detected and output.nsfw_content_detected[0]:
                 continue
