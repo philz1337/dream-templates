@@ -135,6 +135,8 @@ class Predictor(BasePredictor):
         pipe.load_textual_inversion("./ti/bad-picture-chill-75v.pt", token="<bad-picture-chill>")
         pipe.load_textual_inversion("./ti/CyberRealistic_Negative-neg.pt", token="<cyberrealistic-neg>")
         pipe.load_textual_inversion("./ti/realisticvision-negative-embedding.pt", token="<realisticvision-neg>")
+        pipe.load_textual_inversion("./ti/BadDream.pt", token="<baddream>")
+        
 
         print("loading textual-inversions took: %0.2f" % (time.time() - start))
 
