@@ -510,28 +510,32 @@ class Predictor(BasePredictor):
         # FIXME(ja): we shouldn't need to do this multiple times
         # or perhaps we create the object each time?
         
-        print("Loading compel...")
-        textual_inversion_manager = DiffusersTextualInversionManager(pipe)
-        compel = Compel(
-            tokenizer=pipe.tokenizer,
-            text_encoder=pipe.text_encoder,
-            textual_inversion_manager=textual_inversion_manager,
-        )
-        
-        if prompt:
-            print("parsed prompt:", compel.parse_prompt_string(prompt))
-            prompt_embeds = compel(prompt)
-        else:
-            prompt_embeds = None
-
-        if negative_prompt:
-            print(
-                "parsed negative prompt:",
-                compel.parse_prompt_string(negative_prompt),
+        def process_prompt(pipe):
+            print("Loading compel...")
+            textual_inversion_manager = DiffusersTextualInversionManager(pipe)
+            compel = Compel(
+                tokenizer=pipe.tokenizer,
+                text_encoder=pipe.text_encoder,
+                textual_inversion_manager=textual_inversion_manager,
             )
-            negative_prompt_embeds = compel(negative_prompt)
-        else:
+
+            prompt_embeds = None
             negative_prompt_embeds = None
+
+            if prompt:
+                print("parsed prompt:", compel.parse_prompt_string(prompt))
+                prompt_embeds = compel(prompt)
+
+            if negative_prompt:
+                print(
+                    "parsed negative prompt:",
+                    compel.parse_prompt_string(negative_prompt),
+                )
+                negative_prompt_embeds = compel(negative_prompt)
+
+            return prompt_embeds, negative_prompt_embeds
+        
+        prompt_embeds, negative_prompt_embeds = process_prompt(pipe)          
 
         start = time.time()
         if control_image and mask:
@@ -660,9 +664,10 @@ class Predictor(BasePredictor):
             elif upscale_afterwards_method == "tiles":
                 print("Using upscale tiles pipeline")
                 upscale_pipe = self.get_pipeline(pipe, "cnet_img2img_tiles")
+            upscale_prompt_embeds, upscale_negative_prompt_embeds =  process_prompt(upscale_pipe)
             upscale_kwargs = {
-                        "prompt_embeds": prompt_embeds,
-                        "negative_prompt_embeds":negative_prompt_embeds
+                        "prompt_embeds": upscale_prompt_embeds,
+                        "negative_prompt_embeds": upscale_negative_prompt_embeds
                     }
         lora_kwargs = {}
         if lora_model_link:
