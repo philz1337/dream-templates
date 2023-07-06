@@ -487,7 +487,7 @@ class Predictor(BasePredictor):
             print(self.weights_download_cache.cache_info())
 
         start = time.time()
-        pipe, pipe_reference, pipe_reference_cn = self.get_weights(weights, self.controlnet)
+        pipe_init, pipe_reference, pipe_reference_cn = self.get_weights(weights, self.controlnet)
         print("loading weights took: %0.2f" % (time.time() - start))
 
         start = time.time()
@@ -544,7 +544,7 @@ class Predictor(BasePredictor):
             raise ValueError("Cannot use two different controlnets at the same time")
         elif control_image and image:
             print("Using ControlNet img2img")
-            pipe = self.get_pipeline(pipe, "cnet_img2img")
+            pipe = self.get_pipeline(pipe_init, "cnet_img2img")
             extra_kwargs = {
                 "controlnet_conditioning_image": control_image,
                 "image": image,
@@ -554,7 +554,7 @@ class Predictor(BasePredictor):
             }
         elif control_image:
             print("Using ControlNet txt2img")
-            pipe = self.get_pipeline(pipe, "cnet_txt2img")
+            pipe = self.get_pipeline(pipe_init, "cnet_txt2img")
             extra_kwargs = {
                 "image": control_image,
                 "width": width,
@@ -564,13 +564,13 @@ class Predictor(BasePredictor):
             }
         elif control_image_openpose and image:
             print("Using ControlNet img2img with openpose")
-            pipe = self.get_pipeline(pipe, "cnet_img2img_openpose")
+            pipe = self.get_pipeline(pipe_init, "cnet_img2img_openpose")
             extra_kwargs = {
                 "controlnet_conditioning_image": control_image_openpose,
                 "image": image,
                 "strength": prompt_strength,
                 "prompt_embeds": prompt_embeds,
-                "negative_prompt_embeds":negative_prompt_embeds
+                "negative_prompt_embeds": negative_prompt_embeds
             }
         elif control_image_openpose and reference_image:
              print("Using Reference ControlNet txt2img with openpose")
@@ -584,13 +584,13 @@ class Predictor(BasePredictor):
                  "width": width,
                  "height": height,
                  "prompt_embeds": prompt_embeds,
-                 "negative_prompt_embeds":negative_prompt_embeds,
+                 "negative_prompt_embeds": negative_prompt_embeds,
                  "guess_mode": reference_guess_mode,
                  "attention_auto_machine_weight": reference_attention_auto_machine_weight
              }
         elif control_image_openpose:
             print("Using ControlNet txt2img with openpose")
-            pipe = self.get_pipeline(pipe, "cnet_txt2img_openpose")
+            pipe = self.get_pipeline(pipe_init, "cnet_txt2img_openpose")
             extra_kwargs = {
                 "image": control_image_openpose,
                 "width": width,
@@ -600,9 +600,8 @@ class Predictor(BasePredictor):
             }
         elif image and zoom_out:
             print("Using zoom out pipeline")
-            pipe = self.get_pipeline(pipe, "zoom_out")
+            pipe = self.get_pipeline(pipe_init, "zoom_out")
             image = self.resize_and_center_image(image)
-
             extra_kwargs = {
                 "prompt": prompt,
                 "negative_prompt": negative_prompt,
@@ -614,7 +613,7 @@ class Predictor(BasePredictor):
             }
         elif image and mask:
             print("Using inpaint pipeline")
-            pipe = self.get_pipeline(pipe, "inpaint")
+            pipe = self.get_pipeline(pipe_init, "inpaint")
             # FIXME(ja): prompt/negative_prompt are sent to the inpainting pipeline
             # because it doesn't support prompt_embeds/negative_prompt_embeds
             extra_kwargs = {
@@ -627,7 +626,7 @@ class Predictor(BasePredictor):
         
         elif image:
             print("Using img2img pipeline")
-            pipe = self.get_pipeline(pipe, "img2img")
+            pipe = self.get_pipeline(pipe_init, "img2img")
             extra_kwargs = {
                 "image": image,
                 "strength": prompt_strength,
@@ -650,7 +649,7 @@ class Predictor(BasePredictor):
             }
         else:
             print("Using txt2img pipeline")
-            pipe = self.get_pipeline(pipe, "txt2img")
+            pipe = self.get_pipeline(pipe_init, "txt2img")
             extra_kwargs = {
                 "width": width,
                 "height": height,
@@ -660,10 +659,10 @@ class Predictor(BasePredictor):
         if upscale_afterwards: 
             if upscale_afterwards_method == "img2img":
                 print("Using upscale pipeline")
-                upscale_pipe = self.get_pipeline(pipe, "img2img")
+                upscale_pipe = self.get_pipeline(pipe_init, "img2img")
             elif upscale_afterwards_method == "tiles":
                 print("Using upscale tiles pipeline")
-                upscale_pipe = self.get_pipeline(pipe, "cnet_img2img_tiles")
+                upscale_pipe = self.get_pipeline(pipe_init, "cnet_img2img_tiles")
             upscale_prompt_embeds, upscale_negative_prompt_embeds =  process_prompt(upscale_pipe)
             upscale_kwargs = {
                         "prompt_embeds": upscale_prompt_embeds,
