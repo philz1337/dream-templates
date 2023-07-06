@@ -130,11 +130,11 @@ class Predictor(BasePredictor):
         start = time.time()
         pipe.load_textual_inversion("./ti/negative_hand-neg.pt", token="<negative-hand>")
         pipe.load_textual_inversion("./ti/badhandv4.pt", token="<badhandv4>")
-        pipe.load_textual_inversion("./ti/easynegative.pt", token="<easynegative>")
-        pipe.load_textual_inversion("./ti/ng_deepnegative_v1_75t.pt", token="<ng-deepnegative>")
-        pipe.load_textual_inversion("./ti/bad-picture-chill-75v.pt", token="<bad-picture-chill>")
+        #pipe.load_textual_inversion("./ti/easynegative.pt", token="<easynegative>")
+        #pipe.load_textual_inversion("./ti/ng_deepnegative_v1_75t.pt", token="<ng-deepnegative>")
+        #pipe.load_textual_inversion("./ti/bad-picture-chill-75v.pt", token="<bad-picture-chill>")
         pipe.load_textual_inversion("./ti/CyberRealistic_Negative-neg.pt", token="<cyberrealistic-neg>")
-        pipe.load_textual_inversion("./ti/realisticvision-negative-embedding.pt", token="<realisticvision-neg>")
+        #pipe.load_textual_inversion("./ti/realisticvision-negative-embedding.pt", token="<realisticvision-neg>")
         pipe.load_textual_inversion("./ti/BadDream.pt", token="<baddream>")
         
 
