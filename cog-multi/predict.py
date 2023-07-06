@@ -535,7 +535,7 @@ class Predictor(BasePredictor):
 
             return prompt_embeds, negative_prompt_embeds
         
-        prompt_embeds, negative_prompt_embeds = process_prompt(pipe)          
+        prompt_embeds, negative_prompt_embeds = process_prompt(pipe_init)          
 
         start = time.time()
         if control_image and mask:
