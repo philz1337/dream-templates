@@ -552,6 +552,22 @@ class Predictor(BasePredictor):
                 "prompt_embeds": prompt_embeds,
                 "negative_prompt_embeds":negative_prompt_embeds
             }
+        elif control_image and reference_image:
+             print("Using Reference ControlNet")
+             pipe = pipe_reference_cn
+             extra_kwargs = {
+                 "ref_image": reference_image,
+                 "image": control_image,
+                 "reference_attn": reference_attn,
+                 "reference_adain": reference_adain,
+                 "style_fidelity": reference_style_fidelity,
+                 "width": width,
+                 "height": height,
+                 "prompt_embeds": prompt_embeds,
+                 "negative_prompt_embeds": negative_prompt_embeds,
+                 "guess_mode": reference_guess_mode,
+                 "attention_auto_machine_weight": reference_attention_auto_machine_weight
+             }
         elif control_image:
             print("Using ControlNet txt2img")
             pipe = self.get_pipeline(pipe_init, "cnet_txt2img")
@@ -572,22 +588,7 @@ class Predictor(BasePredictor):
                 "prompt_embeds": prompt_embeds,
                 "negative_prompt_embeds": negative_prompt_embeds
             }
-        elif control_image_openpose and reference_image:
-             print("Using Reference ControlNet txt2img with openpose")
-             pipe = pipe_reference_cn
-             extra_kwargs = {
-                 "ref_image": reference_image,
-                 "image": control_image,
-                 "reference_attn": reference_attn,
-                 "reference_adain": reference_adain,
-                 "style_fidelity": reference_style_fidelity,
-                 "width": width,
-                 "height": height,
-                 "prompt_embeds": prompt_embeds,
-                 "negative_prompt_embeds": negative_prompt_embeds,
-                 "guess_mode": reference_guess_mode,
-                 "attention_auto_machine_weight": reference_attention_auto_machine_weight
-             }
+
         elif control_image_openpose:
             print("Using ControlNet txt2img with openpose")
             pipe = self.get_pipeline(pipe_init, "cnet_txt2img_openpose")
