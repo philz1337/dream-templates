@@ -93,8 +93,8 @@ class Predictor(BasePredictor):
             url = url.replace('replicate.delivery/pbxt', 'storage.googleapis.com/replicate-files')
 
         path = self.weights_download_cache.ensure(url)
-        weights, weights_reference, weights_reference_cn = self.gpu_weights(path, controlnet)
-        return weights, weights_reference, weights_reference_cn
+        weights = self.gpu_weights(path, controlnet)
+        return weights
 
     @lru_cache(maxsize=10)
     def gpu_weights(self, weights_path: str, controlnet=None):
@@ -108,25 +108,8 @@ class Predictor(BasePredictor):
         ).to("cuda")
         print("loading txt2img weights took: %0.2f" % (time.time() - start))
 
-        start = time.time()
-        pipe_reference = DiffusionPipeline.from_pretrained(
-            weights_path,
-            torch_dtype=torch.float16,
-            local_files_only=True,
-            safety_checker=None,
-            feature_extractor=pipe.feature_extractor,
-            custom_pipeline="stable_diffusion_reference",
-        ).to("cuda")
 
-        pipe_reference_cn = DiffusionPipeline.from_pretrained(
-                 weights_path,
-                 controlnet=controlnet,
-                 safety_checker=None,
-                 torch_dtype=torch.float16,
-                 custom_pipeline="stable_diffusion_controlnet_reference",
-                 ).to('cuda')
-        print("loading reference weights took: %0.2f" % (time.time() - start))
-
+      
         start = time.time()
         pipe.load_textual_inversion("./ti/negative_hand-neg.pt", token="<negative-hand>")
         pipe.load_textual_inversion("./ti/badhandv4.pt", token="<badhandv4>")
@@ -140,7 +123,7 @@ class Predictor(BasePredictor):
 
         print("loading textual-inversions took: %0.2f" % (time.time() - start))
 
-        return pipe, pipe_reference, pipe_reference_cn
+        return pipe
     
     def download_lora_weights(self, url: str):
         folder_path = "/tmp/lora"
@@ -487,7 +470,7 @@ class Predictor(BasePredictor):
             print(self.weights_download_cache.cache_info())
 
         start = time.time()
-        pipe_init, pipe_reference, pipe_reference_cn = self.get_weights(weights, self.controlnet)
+        pipe_init = self.get_weights(weights, self.controlnet)
         print("loading weights took: %0.2f" % (time.time() - start))
 
         start = time.time()
@@ -552,22 +535,7 @@ class Predictor(BasePredictor):
                 "prompt_embeds": prompt_embeds,
                 "negative_prompt_embeds":negative_prompt_embeds
             }
-        elif control_image and reference_image:
-             print("Using Reference ControlNet")
-             pipe = pipe_reference_cn
-             extra_kwargs = {
-                 "ref_image": reference_image,
-                 "image": control_image,
-                 "reference_attn": reference_attn,
-                 "reference_adain": reference_adain,
-                 "style_fidelity": reference_style_fidelity,
-                 "width": width,
-                 "height": height,
-                 "prompt_embeds": prompt_embeds,
-                 "negative_prompt_embeds": negative_prompt_embeds,
-                 "guess_mode": reference_guess_mode,
-                 "attention_auto_machine_weight": reference_attention_auto_machine_weight
-             }
+
         elif control_image:
             print("Using ControlNet txt2img")
             pipe = self.get_pipeline(pipe_init, "cnet_txt2img")
@@ -634,20 +602,7 @@ class Predictor(BasePredictor):
                 "prompt_embeds": prompt_embeds,
                 "negative_prompt_embeds":negative_prompt_embeds
             }
-        elif reference_image:
-            print("Using reference pipeline")
-            pipe = pipe_reference
-            extra_kwargs = {
-                "ref_image": reference_image,
-                "reference_attn": reference_attn,
-                "reference_adain": reference_adain,
-                "style_fidelity": reference_style_fidelity,
-                "width": width,
-                "height": height,
-                "prompt_embeds": prompt_embeds,
-                "negative_prompt_embeds": negative_prompt_embeds,
-                "attention_auto_machine_weight": reference_attention_auto_machine_weight,
-            }
+
         else:
             print("Using txt2img pipeline")
             pipe = self.get_pipeline(pipe_init, "txt2img")
