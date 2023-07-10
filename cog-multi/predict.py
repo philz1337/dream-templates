@@ -619,10 +619,9 @@ class Predictor(BasePredictor):
             elif upscale_afterwards_method == "tiles":
                 print("Using upscale tiles pipeline")
                 upscale_pipe = self.get_pipeline(pipe_init, "cnet_img2img_tiles")
-            upscale_prompt_embeds, upscale_negative_prompt_embeds =  process_prompt(upscale_pipe)
             upscale_kwargs = {
-                        "prompt_embeds": upscale_prompt_embeds,
-                        "negative_prompt_embeds": upscale_negative_prompt_embeds
+                        "prompt_embeds": prompt_embeds,
+                        "negative_prompt_embeds": negative_prompt_embeds
                     }
         lora_kwargs = {}
         if lora_model_link:
